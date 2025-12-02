@@ -27,6 +27,7 @@ import flixel.util.typeLimit.NextState;
 import openfl.Lib;
 import openfl.display.DisplayObject;
 import openfl.display.Stage;
+import openfl.display.Sprite;
 import openfl.display.StageDisplayState;
 import openfl.net.URLRequest;
 #if FLX_TOUCH
@@ -315,6 +316,8 @@ class FlxG
 	 * Contains things related to cameras, a list of all cameras and several effects like `flash()` or `fade()`.
 	 */
 	public static var cameras(default, null):CameraFrontEnd = new CameraFrontEnd();
+
+	public static var spriteBelowMouse:Array<Sprite> = [];
 
 	/**
 	 * Contains a list of all plugins and the functions required to `add()`, `remove()` them etc.
@@ -753,6 +756,7 @@ class FlxG
 		maxElapsed = 0.1;
 		worldBounds.set(-10, -10, width + 20, height + 20);
 		worldDivisions = 6;
+		spriteBelowMouse = [];
 	}
 
 	static function set_scaleMode(value:BaseScaleMode):BaseScaleMode

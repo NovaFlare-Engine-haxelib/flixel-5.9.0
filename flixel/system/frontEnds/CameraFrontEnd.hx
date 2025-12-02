@@ -65,8 +65,10 @@ class CameraFrontEnd
 	public function add<T:FlxCamera>(NewCamera:T, DefaultDrawTarget:Bool = true):T
 	{
 		FlxG.game.addChildAt(NewCamera.flashSprite, FlxG.game.getChildIndex(FlxG.game._inputContainer));
-		if (Main.fpsVar != null)
-			FlxG.game.addChildAt(NewCamera.flashSprite, FlxG.game.getChildIndex(Main.fpsVar));
+
+		for (sprite in FlxG.spriteBelowMouse)
+			if (sprite != null)
+				FlxG.game.addChildAt(NewCamera.flashSprite, FlxG.game.getChildIndex(sprite));
 		
 		list.push(NewCamera);
 		if (DefaultDrawTarget)
