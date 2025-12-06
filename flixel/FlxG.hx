@@ -374,7 +374,7 @@ class FlxG
 	 */
 	public static inline function resetGame():Void
 	{
-		FlxG.stage.application.window.captureFallbackSnapshot();
+		//FlxG.stage.application.window.captureFallbackSnapshot();
 		game._resetGame = true;
 	}
 
@@ -388,6 +388,8 @@ class FlxG
 	public static inline function switchState(nextState:NextState):Void
 	{
 		final stateOnCall = FlxG.state;
+
+		//FlxG.stage.application.window.captureFallbackSnapshot();
 		
 		if (!nextState.isInstance() || canSwitchTo(cast nextState))
 		{
@@ -424,7 +426,7 @@ class FlxG
 	 */
 	public static inline function resetState():Void
 	{
-		FlxG.stage.application.window.captureFallbackSnapshot();
+		//FlxG.stage.application.window.captureFallbackSnapshot();
 		if (state == null || state._constructor == null)
 			FlxG.log.error("FlxG.resetState was called while switching states");
 		else if(!state._constructor.isInstance())
