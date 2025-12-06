@@ -374,6 +374,7 @@ class FlxG
 	 */
 	public static inline function resetGame():Void
 	{
+		FlxG.stage.application.window.captureFallbackSnapshot();
 		game._resetGame = true;
 	}
 
