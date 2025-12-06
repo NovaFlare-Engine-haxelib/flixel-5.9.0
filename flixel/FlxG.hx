@@ -384,16 +384,9 @@ class FlxG
 	 *                     Note: Before Flixel 5.6.0, this took a `FlxState` instance,
 	 *                     this is still available, for backwards compatibility.
 	 */
-	static var openSkip:Bool = false;
 	public static inline function switchState(nextState:NextState):Void
 	{
 		final stateOnCall = FlxG.state;
-
-		if (!openSkip) {
-			openSkip = true;
-		} else {
-			FlxG.stage.application.window.captureFallbackSnapshot();
-		}
 		
 		if (!nextState.isInstance() || canSwitchTo(cast nextState))
 		{
@@ -430,9 +423,7 @@ class FlxG
 	 */
 	public static inline function resetState():Void
 	{
-		openSkip = false;
 		FlxG.stage.application.window.captureFallbackSnapshot();
-		
 		if (state == null || state._constructor == null)
 			FlxG.log.error("FlxG.resetState was called while switching states");
 		else if(!state._constructor.isInstance())

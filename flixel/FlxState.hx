@@ -118,7 +118,6 @@ class FlxState extends FlxContainer
 
 	public function openSubState(SubState:FlxSubState):Void
 	{
-		FlxG.stage.application.window.captureFallbackSnapshot();
 		_requestSubStateReset = true;
 		_requestedSubState = SubState;
 	}
@@ -128,7 +127,6 @@ class FlxState extends FlxContainer
 	 */
 	public function closeSubState():Void
 	{
-		FlxG.stage.application.window.captureFallbackSnapshot();
 		_requestSubStateReset = true;
 	}
 
