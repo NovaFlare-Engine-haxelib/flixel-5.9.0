@@ -760,7 +760,7 @@ class FlxG
 		maxElapsed = 0.1;
 		worldBounds.set(-10, -10, width + 20, height + 20);
 		worldDivisions = 6;
-		spriteBelowMouse = [];
+		//spriteBelowMouse = [];
 	}
 
 	static function set_scaleMode(value:BaseScaleMode):BaseScaleMode
