@@ -347,6 +347,8 @@ class FlxSprite extends FlxObject
 	 */
 	@:noCompletion
 	var _scaledOrigin:FlxPoint;
+	@:noCompletion
+	var _imageScale:Float;
 
 	/**
 	 * These vars are being used for rendering in some of `FlxSprite` subclasses (`FlxTileblock`, `FlxBar`,
@@ -402,6 +404,7 @@ class FlxSprite extends FlxObject
 		_matrix = new FlxMatrix();
 		colorTransform = new ColorTransform();
 		_scaledOrigin = new FlxPoint();
+		_imageScale = 1;
 	}
 
 	/**
@@ -738,8 +741,11 @@ class FlxSprite extends FlxObject
 	 */
 	public function updateHitbox():Void
 	{
-		width = Math.abs(scale.x) * frameWidth;
-		height = Math.abs(scale.y) * frameHeight;
+		var invImageScale = (_imageScale != 0 ? 1 / _imageScale : 1);
+		var renderScaleX = Math.abs(scale.x) * invImageScale;
+		var renderScaleY = Math.abs(scale.y) * invImageScale;
+		width = renderScaleX * frameWidth;
+		height = renderScaleY * frameHeight;
 		offset.set(-0.5 * (width - frameWidth), -0.5 * (height - frameHeight));
 		centerOrigin();
 	}
@@ -851,7 +857,8 @@ class FlxSprite extends FlxObject
 	{
 		_frame.prepareMatrix(_matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
 		_matrix.translate(-origin.x, -origin.y);
-		_matrix.scale(scale.x, scale.y);
+		var invImageScale = (_imageScale != 0 ? 1 / _imageScale : 1);
+		_matrix.scale(scale.x * invImageScale, scale.y * invImageScale);
 
 		if (bakedRotationAngle <= 0)
 		{
@@ -905,7 +912,8 @@ class FlxSprite extends FlxObject
 		{
 			_matrix.identity();
 			_matrix.translate(-Brush.origin.x, -Brush.origin.y);
-			_matrix.scale(Brush.scale.x, Brush.scale.y);
+			var invImageScaleBrush = (Brush._imageScale != 0 ? 1 / Brush._imageScale : 1);
+			_matrix.scale(Brush.scale.x * invImageScaleBrush, Brush.scale.y * invImageScaleBrush);
 			if (Brush.angle != 0)
 			{
 				_matrix.rotate(Brush.angle * FlxAngle.TO_RAD);
@@ -1303,7 +1311,7 @@ class FlxSprite extends FlxObject
 	 */
 	public function isSimpleRenderBlit(?camera:FlxCamera):Bool
 	{
-		var result:Bool = (angle == 0 || bakedRotationAngle > 0) && scale.x == 1 && scale.y == 1 && blend == null;
+		var result:Bool = (angle == 0 || bakedRotationAngle > 0) && scale.x == 1 && scale.y == 1 && blend == null && _imageScale == 1;
 		result = result && (camera != null ? isPixelPerfectRender(camera) : pixelPerfectRender);
 		return result;
 	}
@@ -1597,6 +1605,12 @@ class FlxSprite extends FlxObject
 		{
 			graphic = Frames.parent;
 			frames = Frames;
+			var s:Dynamic = Reflect.getProperty(frames.parent.bitmap, "imageScale");
+			if (s == null) s = Reflect.getProperty(frames.parent.bitmap, "imagescale");
+			if (s != null)
+				_imageScale = (s : Float);
+			else
+				_imageScale = 1;
 			frame = frames.getByIndex(0);
 			resetHelpers();
 			bakedRotationAngle = 0;
@@ -1608,6 +1622,7 @@ class FlxSprite extends FlxObject
 			frames = null;
 			frame = null;
 			graphic = null;
+			_imageScale = 1;
 		}
 
 		return Frames;
