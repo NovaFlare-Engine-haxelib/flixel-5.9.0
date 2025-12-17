@@ -80,23 +80,17 @@ class FlxAtlasFrames extends FlxFramesCollection
 		frames = new FlxAtlasFrames(graphic);
 
 		final data:TexturePackerAtlas = description.getData();
+		// JSON-Array
 		if (data.frames.isArray())
 		{
-			var scale:Float = 1;
-			var s:Dynamic = Reflect.getProperty(frames.parent.bitmap, "imageScale");
-			if (s == null) s = Reflect.getProperty(frames.parent.bitmap, "imagescale");
-			if (s != null) scale = Std.parseFloat(Std.string(s));
 			for (frame in data.frames.toArray())
-				texturePackerHelper(frame.filename, frame, frames, useFrameDuration, scale);
+				texturePackerHelper(frame.filename, frame, frames, useFrameDuration);
 		}
+		// JSON-Hash
 		else
 		{
-			var scale:Float = 1;
-			var s:Dynamic = Reflect.getProperty(frames.parent.bitmap, "imageScale");
-			if (s == null) s = Reflect.getProperty(frames.parent.bitmap, "imagescale");
-			if (s != null) scale = Std.parseFloat(Std.string(s));
 			for (name=>frame in data.frames.toHash())
-				texturePackerHelper(name, frame, frames, useFrameDuration, scale);
+				texturePackerHelper(name, frame, frames, useFrameDuration);
 		}
 
 		return frames;
@@ -109,7 +103,7 @@ class FlxAtlasFrames extends FlxFramesCollection
 	 * @param   frameData   The TexturePacker data excluding "filename".
 	 * @param   frames      The `FlxAtlasFrames` to add this frame to.
 	 */
-	static function texturePackerHelper(frameName:String, frameData:TexturePackerAtlasFrame, frames:FlxAtlasFrames, useFrameDuration = false, scale:Float = 1):Void
+	static function texturePackerHelper(frameName:String, frameData:TexturePackerAtlasFrame, frames:FlxAtlasFrames, useFrameDuration = false):Void
 	{
 		final rotated:Bool = frameData.rotated;
 		var angle:FlxFrameAngle = FlxFrameAngle.ANGLE_0;
@@ -118,16 +112,16 @@ class FlxAtlasFrames extends FlxFramesCollection
 		final frame = frameData.frame;
 		if (rotated)
 		{
-			frameRect = FlxRect.get(frame.x * scale, frame.y * scale, frame.h * scale, frame.w * scale);
+			frameRect = FlxRect.get(frame.x, frame.y, frame.h, frame.w);
 			angle = FlxFrameAngle.ANGLE_NEG_90;
 		}
 		else
 		{
-			frameRect = FlxRect.get(frame.x * scale, frame.y * scale, frame.w * scale, frame.h * scale);
+			frameRect = FlxRect.get(frame.x, frame.y, frame.w, frame.h);
 		}
 
-		final sourceSize = FlxPoint.get(frameData.sourceSize.w * scale, frameData.sourceSize.h * scale);
-		final offset = FlxPoint.get(frameData.spriteSourceSize.x * scale, frameData.spriteSourceSize.y * scale);
+		final sourceSize = FlxPoint.get(frameData.sourceSize.w, frameData.sourceSize.h);
+		final offset = FlxPoint.get(frameData.spriteSourceSize.x, frameData.spriteSourceSize.y);
 		final duration = (useFrameDuration && frameData.duration != null) ? frameData.duration / 1000 : 0;
 		frames.addAtlasFrame(frameRect, sourceSize, offset, frameName, angle, false, false, duration);
 	}
@@ -170,11 +164,6 @@ class FlxAtlasFrames extends FlxFramesCollection
 		var numElementsPerImage:Int = 7;
 		var numImages:Int = Std.int(lines.length / numElementsPerImage);
 
-		var scale:Float = 1;
-		var s:Dynamic = Reflect.getProperty(frames.parent.bitmap, "imageScale");
-		if (s == null) s = Reflect.getProperty(frames.parent.bitmap, "imagescale");
-		if (s != null) scale = Std.parseFloat(Std.string(s));
-
 		for (i in 0...numImages)
 		{
 			var curIndex = i * numElementsPerImage;
@@ -195,12 +184,12 @@ class FlxAtlasFrames extends FlxFramesCollection
 			var imageWidth = size.x;
 			var imageHeight = size.y;
 
-			var rect = FlxRect.get(imageX * scale, imageY * scale, imageWidth * scale, imageHeight * scale);
+			var rect = FlxRect.get(imageX, imageY, imageWidth, imageHeight);
 
 			tempString = lines[curIndex++];
 			size = getDimensions(tempString);
 
-			var sourceSize = FlxPoint.get(size.x * scale, size.y * scale);
+			var sourceSize = FlxPoint.get(size.x, size.y);
 
 			tempString = lines[curIndex++];
 			size = getDimensions(tempString);
@@ -215,7 +204,7 @@ class FlxAtlasFrames extends FlxFramesCollection
 			// currently outputs the offset from the bottom left, instead:
 			// var offset = FlxPoint.get(size.x, size.y);
 			// workaround for https://github.com/libgdx/libgdx/issues/4288
-			var offset = FlxPoint.get(size.x * scale, sourceSize.y - (size.y * scale) - (imageHeight * scale));
+			var offset = FlxPoint.get(size.x, sourceSize.y - size.y - imageHeight);
 			frames.addAtlasFrame(rect, sourceSize, offset, name, angle);
 		}
 
@@ -261,14 +250,8 @@ class FlxAtlasFrames extends FlxFramesCollection
 		frames = new FlxAtlasFrames(graphic);
 
 		var data:Access = new Access(xml.getXml().firstElement());
-		var textures:Array<Access> = [];
+
 		for (texture in data.nodes.SubTexture)
-			textures.push(texture);
-		var scale:Float = 1;
-		var s:Dynamic = Reflect.getProperty(frames.parent.bitmap, "imageScale");
-		if (s == null) s = Reflect.getProperty(frames.parent.bitmap, "imagescale");
-		if (s != null) scale = Std.parseFloat(Std.string(s));
-		for (texture in textures)
 		{
 			if (!texture.has.width && texture.has.w)
 				throw "Sparrow v1 is not supported, use Sparrow v2";
@@ -279,13 +262,13 @@ class FlxAtlasFrames extends FlxFramesCollection
 			var flipX = (texture.has.flipX && texture.att.flipX == "true");
 			var flipY = (texture.has.flipY && texture.att.flipY == "true");
 
-			var rect = FlxRect.get(Std.parseFloat(texture.att.x) * scale, Std.parseFloat(texture.att.y) * scale, Std.parseFloat(texture.att.width) * scale,
-				Std.parseFloat(texture.att.height) * scale);
+			var rect = FlxRect.get(Std.parseFloat(texture.att.x), Std.parseFloat(texture.att.y), Std.parseFloat(texture.att.width),
+				Std.parseFloat(texture.att.height));
 			
 			var size = if (trimmed)
 			{
-				FlxRect.get(Std.parseInt(texture.att.frameX) * scale, Std.parseInt(texture.att.frameY) * scale, Std.parseInt(texture.att.frameWidth) * scale,
-					Std.parseInt(texture.att.frameHeight) * scale);
+				FlxRect.get(Std.parseInt(texture.att.frameX), Std.parseInt(texture.att.frameY), Std.parseInt(texture.att.frameWidth),
+					Std.parseInt(texture.att.frameHeight));
 			}
 			else
 			{
@@ -346,28 +329,21 @@ class FlxAtlasFrames extends FlxFramesCollection
 		frames = new FlxAtlasFrames(graphic);
 
 		final data = xml.getXml();
-		var sprites:Array<Xml> = [];
+
 		for (sprite in data.firstElement().elements())
-			sprites.push(sprite);
-		var scale:Float = 1;
-		var s:Dynamic = Reflect.getProperty(frames.parent.bitmap, "imageScale");
-		if (s == null) s = Reflect.getProperty(frames.parent.bitmap, "imagescale");
-		if (s != null) scale = Std.parseFloat(Std.string(s));
-		for (sprite in sprites)
 		{
 			var trimmed = (sprite.exists("oX") || sprite.exists("oY"));
 			var rotated = (sprite.exists("r") && sprite.get("r") == "y");
 			var angle = (rotated) ? FlxFrameAngle.ANGLE_NEG_90 : FlxFrameAngle.ANGLE_0;
-			var angle = (rotated) ? FlxFrameAngle.ANGLE_NEG_90 : FlxFrameAngle.ANGLE_0;
 			var name = sprite.get("n");
 			var offset = FlxPoint.get(0, 0);
-			var rect = FlxRect.get(Std.parseInt(sprite.get("x")) * scale, Std.parseInt(sprite.get("y")) * scale, Std.parseInt(sprite.get("w")) * scale, Std.parseInt(sprite.get("h")) * scale);
+			var rect = FlxRect.get(Std.parseInt(sprite.get("x")), Std.parseInt(sprite.get("y")), Std.parseInt(sprite.get("w")), Std.parseInt(sprite.get("h")));
 			var sourceSize = FlxPoint.get(rect.width, rect.height);
 
 			if (trimmed)
 			{
-				offset.set(Std.parseInt(sprite.get("oX")) * scale, Std.parseInt(sprite.get("oY")) * scale);
-				sourceSize.set(Std.parseInt(sprite.get("oW")) * scale, Std.parseInt(sprite.get("oH")) * scale);
+				offset.set(Std.parseInt(sprite.get("oX")), Std.parseInt(sprite.get("oY")));
+				sourceSize.set(Std.parseInt(sprite.get("oW")), Std.parseInt(sprite.get("oH")));
 			}
 
 			frames.addAtlasFrame(rect, sourceSize, offset, name, angle);
@@ -407,18 +383,14 @@ class FlxAtlasFrames extends FlxFramesCollection
 		var pack = StringTools.trim(Description);
 		var lines:Array<String> = pack.split("\n");
 
-		var scale:Float = 1;
-		var s:Dynamic = Reflect.getProperty(frames.parent.bitmap, "imageScale");
-		if (s != null) scale = s;
-
 		for (i in 0...lines.length)
 		{
 			var currImageData = lines[i].split("=");
 			var name = StringTools.trim(currImageData[0]);
 			var currImageRegion = StringTools.trim(currImageData[1]).split(" ");
 
-			var rect = FlxRect.get(Std.parseInt(currImageRegion[0]) * scale, Std.parseInt(currImageRegion[1]) * scale, Std.parseInt(currImageRegion[2]) * scale,
-				Std.parseInt(currImageRegion[3]) * scale);
+			var rect = FlxRect.get(Std.parseInt(currImageRegion[0]), Std.parseInt(currImageRegion[1]), Std.parseInt(currImageRegion[2]),
+				Std.parseInt(currImageRegion[3]));
 			var sourceSize = FlxPoint.get(rect.width, rect.height);
 			var offset = FlxPoint.get();
 
