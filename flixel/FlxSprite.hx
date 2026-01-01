@@ -521,6 +521,9 @@ class FlxSprite extends FlxObject
 		if (graph == null)
 			return this;
 
+		if (graph.bitmap.graphicScale != null)
+			graphicScale.set(graph.bitmap.graphicScale);
+
 		if (frameWidth == 0)
 		{
 			frameWidth = animated ? graph.height : graph.width;
@@ -741,6 +744,11 @@ class FlxSprite extends FlxObject
 	{
 		if (width <= 0 && height <= 0)
 			return;
+
+		if (graphicScale != null) {
+			graphicScale.set(1, 1);
+			additionalX = additionalY= 0;
+		}
 
 		var newScaleX:Float = width / frameWidth;
 		var newScaleY:Float = height / frameHeight;
