@@ -60,7 +60,7 @@ class FlxFramesCollection implements IFlxDestroyable
 	 * Scale of the frames in this collection.
 	 * Used for spritesheets with different image scale than 1.0.
 	 */
-	public var imageScale:Float = 1.0;
+	public var graphicScale:Float = 1.0;
 
 	public function new(parent:FlxGraphic, ?type:FlxFrameCollectionType, ?border:FlxPoint)
 	{

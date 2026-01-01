@@ -247,10 +247,10 @@ class FlxAtlasFrames extends FlxFramesCollection
 		if (graphic == null || xml == null)
 			return null;
 
-		var imageScale = Math.abs(graphic.bitmap.imageScale);
+		var graphicScale = Math.abs(graphic.bitmap.graphicScale);
 
 		frames = new FlxAtlasFrames(graphic);
-		frames.imageScale = imageScale;
+		frames.graphicScale = graphicScale;
 
 		var data:Access = new Access(xml.getXml().firstElement());
 
@@ -268,12 +268,12 @@ class FlxAtlasFrames extends FlxFramesCollection
 			var rect = FlxRect.get(Std.parseFloat(texture.att.x), Std.parseFloat(texture.att.y), Std.parseFloat(texture.att.width),
 				Std.parseFloat(texture.att.height));
 
-			if (imageScale != 1.0)
+			if (graphicScale != 1.0)
 			{
-				rect.x *= imageScale;
-				rect.y *= imageScale;
-				rect.width *= imageScale;
-				rect.height *= imageScale;
+				rect.x *= graphicScale;
+				rect.y *= graphicScale;
+				rect.width *= graphicScale;
+				rect.height *= graphicScale;
 			}
 			
 			var size = if (trimmed)
@@ -286,12 +286,12 @@ class FlxAtlasFrames extends FlxFramesCollection
 				FlxRect.get(0, 0, rect.width, rect.height);
 			}
 
-			if (imageScale != 1.0 && trimmed)
+			if (graphicScale != 1.0 && trimmed)
 			{
-				size.x *= imageScale;
-				size.y *= imageScale;
-				size.width *= imageScale;
-				size.height *= imageScale;
+				size.x *= graphicScale;
+				size.y *= graphicScale;
+				size.width *= graphicScale;
+				size.height *= graphicScale;
 			}
 
 			var angle = rotated ? FlxFrameAngle.ANGLE_NEG_90 : FlxFrameAngle.ANGLE_0;

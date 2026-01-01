@@ -521,13 +521,14 @@ class FlxSprite extends FlxObject
 		if (graph == null)
 			return this;
 
-		if (graph.bitmap.graphicScale != null)
-			graphicScale.set(graph.bitmap.graphicScale);
+		if (graph.bitmap.graphicScale != 1)
+			graphicScale.set(1/graph.bitmap.graphicScale, 1/graph.bitmap.graphicScale);
 
 		if (frameWidth == 0)
 		{
 			frameWidth = animated ? graph.height : graph.width;
 			frameWidth = (frameWidth > graph.width) ? graph.width : frameWidth;
+			//frameWidth = Std.int(frameWidth * graphicScale.x);
 		}
 		else if (frameWidth > graph.width)
 			FlxG.log.warn('frameWidth:$frameWidth is larger than the graphic\'s width:${graph.width}');
@@ -536,6 +537,7 @@ class FlxSprite extends FlxObject
 		{
 			frameHeight = animated ? frameWidth : graph.height;
 			frameHeight = (frameHeight > graph.height) ? graph.height : frameHeight;
+			//frameHeight = Std.int(frameHeight * graphicScale.y);
 		}
 		else if (frameHeight > graph.height)
 			FlxG.log.warn('frameHeight:$frameHeight is larger than the graphic\'s height:${graph.height}');
@@ -544,6 +546,9 @@ class FlxSprite extends FlxObject
 			frames = FlxTileFrames.fromGraphic(graph, FlxPoint.get(frameWidth, frameHeight));
 		else
 			frames = graph.imageFrame;
+
+		additionalX = frameWidth * (graphicScale.x - 1) / 2;
+		additionalY = frameHeight * (graphicScale.y - 1) / 2;
 
 		return this;
 	}
@@ -745,11 +750,6 @@ class FlxSprite extends FlxObject
 		if (width <= 0 && height <= 0)
 			return;
 
-		if (graphicScale != null) {
-			graphicScale.set(1, 1);
-			additionalX = additionalY= 0;
-		}
-
 		var newScaleX:Float = width / frameWidth;
 		var newScaleY:Float = height / frameHeight;
 		scale.set(newScaleX, newScaleY);
@@ -758,6 +758,9 @@ class FlxSprite extends FlxObject
 			scale.x = newScaleY;
 		else if (height <= 0)
 			scale.y = newScaleX;
+
+		graphicScale.set(1, 1);
+		additionalX = additionalY = 0;
 	}
 
 	/**
@@ -1631,11 +1634,13 @@ class FlxSprite extends FlxObject
 			animation.frameIndex = 0;
 			graphicLoaded();
 
-			if (Frames.imageScale != 1.0)
+			if (Frames.graphicScale != 1.0)
 			{
-				graphicScale.set(1 / Frames.imageScale, 1 / Frames.imageScale);
-				additionalX += frameWidth * (graphicScale.x - 1) / 2;
-				additionalY += frameHeight * (graphicScale.y - 1) / 2;
+				//frameWidth = Std.int(frameWidth * Frames.graphicScale);
+				//frameHeight = Std.int(frameHeight * Frames.graphicScale);
+				graphicScale.set(1 / Frames.graphicScale, 1 / Frames.graphicScale);
+				additionalX = frameWidth * (graphicScale.x - 1) / 2;
+				additionalY = frameHeight * (graphicScale.y - 1) / 2;
 			}
 		}
 		else
