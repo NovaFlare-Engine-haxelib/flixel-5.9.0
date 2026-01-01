@@ -275,6 +275,8 @@ class FlxSprite extends FlxObject
 	 */
 	public var imageName:String;
 
+	public var alreadyAdded:Bool = false;
+
 	/**
 	 * Clipping rectangle for this sprite.
 	 * Changing the rect's properties directly doesn't have any effect,
