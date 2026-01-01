@@ -18,7 +18,7 @@ import openfl.geom.Rectangle;
 class FlxAtlasFrames extends FlxFramesCollection
 {
 	var usedGraphics:Array<FlxGraphic> = [];
-	
+
 	public function new(parent:FlxGraphic, ?border:FlxPoint)
 	{
 		super(parent, FlxFrameCollectionType.ATLAS, border);
@@ -247,7 +247,10 @@ class FlxAtlasFrames extends FlxFramesCollection
 		if (graphic == null || xml == null)
 			return null;
 
+		var imageScale = Math.abs(graphic.bitmap.imageScale);
+
 		frames = new FlxAtlasFrames(graphic);
+		frames.imageScale = imageScale;
 
 		var data:Access = new Access(xml.getXml().firstElement());
 
@@ -264,6 +267,14 @@ class FlxAtlasFrames extends FlxFramesCollection
 
 			var rect = FlxRect.get(Std.parseFloat(texture.att.x), Std.parseFloat(texture.att.y), Std.parseFloat(texture.att.width),
 				Std.parseFloat(texture.att.height));
+
+			if (imageScale != 1.0)
+			{
+				rect.x *= imageScale;
+				rect.y *= imageScale;
+				rect.width *= imageScale;
+				rect.height *= imageScale;
+			}
 			
 			var size = if (trimmed)
 			{
@@ -274,7 +285,14 @@ class FlxAtlasFrames extends FlxFramesCollection
 			{
 				FlxRect.get(0, 0, rect.width, rect.height);
 			}
-			
+
+			if (imageScale != 1.0 && trimmed)
+			{
+				size.x *= imageScale;
+				size.y *= imageScale;
+				size.width *= imageScale;
+				size.height *= imageScale;
+			}
 
 			var angle = rotated ? FlxFrameAngle.ANGLE_NEG_90 : FlxFrameAngle.ANGLE_0;
 

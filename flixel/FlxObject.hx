@@ -619,9 +619,19 @@ class FlxObject extends FlxBasic
 	public var x(default, set):Float = 0;
 
 	/**
+	 * Additional X position offset that affects the screen position calculation.
+	 */
+	public var additionalX:Float = 0;
+
+	/**
 	 * Y position of the upper left corner of this object in world space.
 	 */
 	public var y(default, set):Float = 0;
+
+	/**
+	 * Additional Y position offset that affects the screen position calculation.
+	 */
+	public var additionalY:Float = 0;
 
 	/**
 	 * The width of this object's hitbox. For sprites, use `offset` to control the hitbox position.
@@ -1132,7 +1142,7 @@ class FlxObject extends FlxBasic
 		if (camera == null)
 			camera = FlxG.camera;
 
-		result.set(x, y);
+		result.set(x + additionalX, y + additionalY);
 		if (pixelPerfectPosition)
 			result.floor();
 

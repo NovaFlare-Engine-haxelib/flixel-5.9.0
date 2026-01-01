@@ -252,6 +252,15 @@ class FlxSprite extends FlxObject
 	public var scale(default, null):FlxPoint;
 
 	/**
+	 * Additional scaling factor for the sprite's graphic.
+	 * This allows scaling the graphic independently from the `scale` property.
+	 * Useful for visual effects without affecting the hitbox or collision logic
+	 * (unless `updateHitbox()` is modified to include it).
+	 * Defaults to (1, 1).
+	 */
+	public var graphicScale(default, null):FlxPoint;
+
+	/**
 	 * Blending modes, just like Photoshop or whatever, e.g. "multiply", "screen", etc.
 	 */
 	public var blend(default, set):BlendMode;
@@ -400,6 +409,7 @@ class FlxSprite extends FlxObject
 		offset = FlxPoint.get();
 		origin = FlxPoint.get();
 		scale = FlxPoint.get(1, 1);
+		graphicScale = FlxPoint.get(1, 1);
 		_halfSize = FlxPoint.get();
 		_matrix = new FlxMatrix();
 		colorTransform = new ColorTransform();
@@ -425,6 +435,7 @@ class FlxSprite extends FlxObject
 		offset = FlxDestroyUtil.put(offset);
 		origin = FlxDestroyUtil.put(origin);
 		scale = FlxDestroyUtil.put(scale);
+		graphicScale = FlxDestroyUtil.put(graphicScale);
 		_halfSize = FlxDestroyUtil.put(_halfSize);
 		_scaledOrigin = FlxDestroyUtil.put(_scaledOrigin);
 
@@ -444,6 +455,13 @@ class FlxSprite extends FlxObject
 		_frameGraphic = FlxDestroyUtil.destroy(_frameGraphic);
 
 		shader = null;
+	}
+
+	override public function reset(x:Float, y:Float):Void
+	{
+		super.reset(x, y);
+		if (graphicScale != null)
+			graphicScale.set(1, 1);
 	}
 
 	public function clone():FlxSprite
@@ -853,7 +871,7 @@ class FlxSprite extends FlxObject
 	{
 		_frame.prepareMatrix(_matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
 		_matrix.translate(-origin.x, -origin.y);
-		_matrix.scale(scale.x, scale.y);
+		_matrix.scale(scale.x * graphicScale.x, scale.y * graphicScale.y);
 
 		if (bakedRotationAngle <= 0)
 		{
@@ -907,7 +925,7 @@ class FlxSprite extends FlxObject
 		{
 			_matrix.identity();
 			_matrix.translate(-Brush.origin.x, -Brush.origin.y);
-			_matrix.scale(Brush.scale.x, Brush.scale.y);
+			_matrix.scale(Brush.scale.x * Brush.graphicScale.x, Brush.scale.y * Brush.graphicScale.y);
 			if (Brush.angle != 0)
 			{
 				_matrix.rotate(Brush.angle * FlxAngle.TO_RAD);
@@ -1131,7 +1149,7 @@ class FlxSprite extends FlxObject
 		result.negate();
 		result.addPoint(offset);
 		result.subtractPoint(origin);
-		result.scale(1 / scale.x, 1 / scale.y);
+		result.scale(1 / (scale.x * graphicScale.x), 1 / (scale.y * graphicScale.y));
 		result.degrees -= angle;
 		result.addPoint(origin);
 		
@@ -1157,7 +1175,7 @@ class FlxSprite extends FlxObject
 		result.negate();
 		result.addPoint(offset);
 		result.subtractPoint(origin);
-		result.scale(1 / scale.x, 1 / scale.y);
+		result.scale(1 / (scale.x * graphicScale.x), 1 / (scale.y * graphicScale.y));
 		result.degrees -= angle;
 		result.addPoint(origin);
 		
@@ -1257,10 +1275,10 @@ class FlxSprite extends FlxObject
 		if (pixelPerfectPosition)
 			rect.floor();
 		
-		_scaledOrigin.set(origin.x * scale.x, origin.y * scale.y);
+		_scaledOrigin.set(origin.x * scale.x * graphicScale.x, origin.y * scale.y * graphicScale.y);
 		rect.x += origin.x - offset.x - _scaledOrigin.x;
 		rect.y += origin.y - offset.y - _scaledOrigin.y;
-		rect.setSize(frameWidth * scale.x, frameHeight * scale.y);
+		rect.setSize(frameWidth * scale.x * graphicScale.x, frameHeight * scale.y * graphicScale.y);
 		
 		if (angle % 360 != 0)
 			rect.getRotatedBounds(angle, _scaledOrigin, rect);
@@ -1347,12 +1365,12 @@ class FlxSprite extends FlxObject
 		newRect.setPosition(x, y);
 		if (pixelPerfectPosition)
 			newRect.floor();
-		_scaledOrigin.set(origin.x * scale.x, origin.y * scale.y);
+		_scaledOrigin.set(origin.x * scale.x * graphicScale.x, origin.y * scale.y * graphicScale.y);
 		newRect.x += -Std.int(camera.scroll.x * scrollFactor.x) - offset.x + origin.x - _scaledOrigin.x;
 		newRect.y += -Std.int(camera.scroll.y * scrollFactor.y) - offset.y + origin.y - _scaledOrigin.y;
 		if (isPixelPerfectRender(camera))
 			newRect.floor();
-		newRect.setSize(frameWidth * Math.abs(scale.x), frameHeight * Math.abs(scale.y));
+		newRect.setSize(frameWidth * Math.abs(scale.x * graphicScale.x), frameHeight * Math.abs(scale.y * graphicScale.y));
 		return newRect.getRotatedBounds(angle, _scaledOrigin, newRect);
 	}
 	
@@ -1604,6 +1622,13 @@ class FlxSprite extends FlxObject
 			bakedRotationAngle = 0;
 			animation.frameIndex = 0;
 			graphicLoaded();
+
+			if (Frames.imageScale != 1.0)
+			{
+				graphicScale.set(1 / Frames.imageScale, 1 / Frames.imageScale);
+				additionalX += frameWidth * (graphicScale.x - 1) / 2;
+				additionalY += frameHeight * (graphicScale.y - 1) / 2;
+			}
 		}
 		else
 		{
