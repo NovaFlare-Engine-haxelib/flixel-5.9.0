@@ -759,8 +759,10 @@ class FlxSprite extends FlxObject
 		else if (height <= 0)
 			scale.y = newScaleX;
 
-		graphicScale.set(1, 1);
-		additionalX = additionalY = 0;
+		if (graphicScale != null) {
+			graphicScale.set(1, 1);
+			additionalX = additionalY = 0;
+		}
 	}
 
 	/**
