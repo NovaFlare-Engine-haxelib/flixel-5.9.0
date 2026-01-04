@@ -140,6 +140,12 @@ class FlxFramesCollection implements IFlxDestroyable
 		frames = FlxDestroyUtil.destroyArray(frames);
 		border = FlxDestroyUtil.put(border);
 		framesByName = null;
+		
+		if (parent != null)
+		{
+			parent.removeFrameCollection(this);
+		}
+		
 		parent = null;
 		type = null;
 	}

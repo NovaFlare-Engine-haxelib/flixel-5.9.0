@@ -106,6 +106,9 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 	override public function reset():Void
 	{
 		super.reset();
+		#if !flash
+		shader = null;
+		#end
 		vertices.length = 0;
 		indices.length = 0;
 		uvtData.length = 0;

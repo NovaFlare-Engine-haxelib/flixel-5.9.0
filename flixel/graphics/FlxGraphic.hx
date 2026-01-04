@@ -516,6 +516,20 @@ class FlxGraphic implements IFlxDestroyable
 	}
 
 	/**
+	 * Removes specified `FlxFrame` collection from internal map.
+	 *
+	 * @param   collection   frame collection to remove.
+	 */
+	public function removeFrameCollection(collection:FlxFramesCollection):Void
+	{
+		if (collection.type != null)
+		{
+			final collections = getFramesCollections(collection.type);
+			collections.remove(collection);
+		}
+	}
+
+	/**
 	 * Searches frame collections of specified type for this `FlxGraphic` object.
 	 *
 	 * @param   type   The type of frames collections to search for.

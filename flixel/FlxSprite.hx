@@ -547,6 +547,9 @@ class FlxSprite extends FlxObject
 		else
 			frames = graph.imageFrame;
 
+		if (graphicScale == null)
+			graphicScale = FlxPoint.get();
+		
 		additionalX = frameWidth * (graphicScale.x - 1) / 2;
 		additionalY = frameHeight * (graphicScale.y - 1) / 2;
 
@@ -884,14 +887,21 @@ class FlxSprite extends FlxObject
 	{
 		_frame.prepareMatrix(_matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
 		_matrix.translate(-origin.x, -origin.y);
-		_matrix.scale(scale.x * graphicScale.x, scale.y * graphicScale.y);
+
+		var sx = scale.x * graphicScale.x;
+		var sy = scale.y * graphicScale.y;
+		if (sx != 1.0 || sy != 1.0)
+		{
+			_matrix.scale(sx, sy);
+		}
 
 		if (bakedRotationAngle <= 0)
 		{
-			updateTrig();
-
 			if (angle != 0)
+			{
+				updateTrig();
 				_matrix.rotateWithTrig(_cosAngle, _sinAngle);
+			}
 		}
 
 		getScreenPosition(_point, camera).subtractPoint(offset);
@@ -1284,7 +1294,7 @@ class FlxSprite extends FlxObject
 		if (rect == null)
 			rect = FlxRect.get();
 		
-		rect.set(x, y);
+		rect.set(x + additionalX, y + additionalY);
 		if (pixelPerfectPosition)
 			rect.floor();
 		
@@ -1375,7 +1385,7 @@ class FlxSprite extends FlxObject
 		if (camera == null)
 			camera = FlxG.camera;
 		
-		newRect.setPosition(x, y);
+		newRect.setPosition(x + additionalX, y + additionalY);
 		if (pixelPerfectPosition)
 			newRect.floor();
 		_scaledOrigin.set(origin.x * scale.x * graphicScale.x, origin.y * scale.y * graphicScale.y);
@@ -1636,13 +1646,24 @@ class FlxSprite extends FlxObject
 			animation.frameIndex = 0;
 			graphicLoaded();
 
+			// 检查是否需要应用缩放
 			if (Frames.graphicScale != 1.0)
 			{
-				//frameWidth = Std.int(frameWidth * Frames.graphicScale);
-				//frameHeight = Std.int(frameHeight * Frames.graphicScale);
-				graphicScale.set(1 / Frames.graphicScale, 1 / Frames.graphicScale);
-				additionalX = frameWidth * (graphicScale.x - 1) / 2;
-				additionalY = frameHeight * (graphicScale.y - 1) / 2;
+				// 重置 graphicScale，确保从 Frames 获取的值不会导致累积或错误
+				if (graphicScale == null)
+					graphicScale = FlxPoint.get();
+				
+				// 计算缩放值
+				var scaleVal = 1 / Frames.graphicScale;
+				// 仅在值实际改变时设置，避免不必要的脏标记
+				if (graphicScale.x != scaleVal || graphicScale.y != scaleVal)
+				{
+					graphicScale.set(scaleVal, scaleVal);
+					
+					// 更新附加位移
+					additionalX = frameWidth * (graphicScale.x - 1) / 2;
+					additionalY = frameHeight * (graphicScale.y - 1) / 2;
+				}
 			}
 		}
 		else
