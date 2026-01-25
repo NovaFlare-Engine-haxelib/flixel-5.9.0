@@ -521,14 +521,15 @@ class FlxSprite extends FlxObject
 		if (graph == null)
 			return this;
 
-		if (graph.bitmap.graphicScale != 1)
+		if (graph.bitmap.graphicScale != 1) {
 			graphicScale.set(1/graph.bitmap.graphicScale, 1/graph.bitmap.graphicScale);
+			canIgoreScaleCheck = true;
+		}
 
 		if (frameWidth == 0)
 		{
 			frameWidth = animated ? graph.height : graph.width;
 			frameWidth = (frameWidth > graph.width) ? graph.width : frameWidth;
-			//frameWidth = Std.int(frameWidth * graphicScale.x);
 		}
 		else if (frameWidth > graph.width)
 			FlxG.log.warn('frameWidth:$frameWidth is larger than the graphic\'s width:${graph.width}');
@@ -537,7 +538,6 @@ class FlxSprite extends FlxObject
 		{
 			frameHeight = animated ? frameWidth : graph.height;
 			frameHeight = (frameHeight > graph.height) ? graph.height : frameHeight;
-			//frameHeight = Std.int(frameHeight * graphicScale.y);
 		}
 		else if (frameHeight > graph.height)
 			FlxG.log.warn('frameHeight:$frameHeight is larger than the graphic\'s height:${graph.height}');
@@ -546,12 +546,6 @@ class FlxSprite extends FlxObject
 			frames = FlxTileFrames.fromGraphic(graph, FlxPoint.get(frameWidth, frameHeight));
 		else
 			frames = graph.imageFrame;
-
-		if (graphicScale == null)
-			graphicScale = FlxPoint.get();
-		
-		additionalX = frameWidth * (graphicScale.x - 1) / 2;
-		additionalY = frameHeight * (graphicScale.y - 1) / 2;
 
 		return this;
 	}
@@ -1621,6 +1615,12 @@ class FlxSprite extends FlxObject
 		return rect;
 	}
 
+
+	/**
+	 * for skip check scale when set frames at LoadGraphic() function
+	 */
+	var canIgoreScaleCheck:Bool = false;
+
 	/**
 	 * Frames setter. Used by `loadGraphic` methods, but you can load generated frames yourself
 	 * (this should be even faster since engine doesn't need to do bunch of additional stuff).
@@ -1647,23 +1647,30 @@ class FlxSprite extends FlxObject
 			graphicLoaded();
 
 			// 检查是否需要应用缩放
-			if (Frames.graphicScale != 1.0)
+			if (Frames.graphicScale != 1.0 || canIgoreScaleCheck)
 			{
 				// 重置 graphicScale，确保从 Frames 获取的值不会导致累积或错误
 				if (graphicScale == null)
 					graphicScale = FlxPoint.get();
 				
-				// 计算缩放值
-				var scaleVal = 1 / Frames.graphicScale;
-				// 仅在值实际改变时设置，避免不必要的脏标记
-				if (graphicScale.x != scaleVal || graphicScale.y != scaleVal)
-				{
-					graphicScale.set(scaleVal, scaleVal);
-					
-					// 更新附加位移
+				if (!canIgoreScaleCheck) {
+					// 计算缩放值
+					var scaleVal = 1 / Frames.graphicScale;
+					// 仅在值实际改变时设置，避免不必要的脏标记
+					if (graphicScale.x != scaleVal || graphicScale.y != scaleVal)
+					{
+						graphicScale.set(scaleVal, scaleVal);
+						
+						// 更新附加位移
+						additionalX = frameWidth * (graphicScale.x - 1) / 2;
+						additionalY = frameHeight * (graphicScale.y - 1) / 2;
+					}
+				} else {
 					additionalX = frameWidth * (graphicScale.x - 1) / 2;
 					additionalY = frameHeight * (graphicScale.y - 1) / 2;
 				}
+
+				canIgoreScaleCheck = false;
 			}
 		}
 		else

@@ -17,6 +17,11 @@ import openfl.net.URLRequest;
 import openfl.utils.ByteArray;
 #end
 
+#if hxvlc
+import hxvlc.openfl.Video;
+import hxvlc.util.Handle;
+#end
+
 /**
  * This is the universal flixel sound object, used for streaming, music, and sound effects.
  */
@@ -209,7 +214,12 @@ class FlxSound extends FlxBasic
 	 * Helper var to prevent the sound from playing after focus was regained when it was already paused.
 	 */
 	var _alreadyPaused:Bool = false;
-	
+
+	#if hxvlc
+	private var _vlcPlayer:Video;
+	public var _onVLC:Bool = false;
+	#end
+
 	/**
 	 * The FlxSound constructor gets all the variables initialized, but NOT ready to play a sound yet.
 	 */
@@ -218,6 +228,35 @@ class FlxSound extends FlxBasic
 		super();
 		reset();
 	}
+
+	#if hxvlc
+	private function _initVlc():Void
+	{
+		if (_vlcPlayer != null) return;
+
+		try {
+			Handle.init();
+			_vlcPlayer = new Video();
+			_vlcPlayer.visible = false;
+			
+			_vlcPlayer.onEndReached.add(function() {
+				FlxG.signals.postUpdate.addOnce(function() {
+					if (_onVLC) stopped();
+				});
+			});
+			_vlcPlayer.onEncounteredError.add(function(_) {
+				FlxG.signals.postUpdate.addOnce(function() {
+					if (_onVLC) cleanup(true);
+				});
+			});
+			_vlcPlayer.onOpening.add(function() {
+				if (_vlcPlayer.videoTrack != -1) _vlcPlayer.videoTrack = -1;
+			});
+		} catch (e:Dynamic) {
+			FlxG.log.warn("FlxStreamSound: VLC init failed (will retry on load): " + e);
+		}
+	}
+	#end
 	
 	/**
 	 * An internal function for clearing all the variables used by sounds.
@@ -286,6 +325,25 @@ class FlxSound extends FlxBasic
 	 */
 	override public function update(elapsed:Float):Void
 	{
+		#if hxvlc
+		if (_onVLC)
+		{
+			if (_vlcPlayer != null && _vlcPlayer.isPlaying)
+			{
+				if (_channel == null) 
+					_channel = @:privateAccess new SoundChannel(null, null, null);
+
+				_time = haxe.Int64.toInt(_vlcPlayer.time);
+			}
+			
+			if (endTime != null && _time >= endTime)
+			{
+				stopped();
+			}
+			return;
+		}
+		#end
+
 		if (!playing)
 			return;
 			
@@ -352,6 +410,15 @@ class FlxSound extends FlxBasic
 			return this;
 			
 		cleanup(true);
+
+		#if hxvlc
+		_onVLC = false;
+		if (_vlcPlayer != null)
+		{
+			_vlcPlayer.dispose();
+			_vlcPlayer = null;
+		}
+		#end
 		
 		if ((EmbeddedSound is Sound))
 		{
@@ -386,6 +453,25 @@ class FlxSound extends FlxBasic
 	 */
 	public function loadStream(SoundURL:String, Looped:Bool = false, AutoDestroy:Bool = false, ?OnComplete:Void->Void, ?OnLoad:Void->Void):FlxSound
 	{
+		#if hxvlc
+		_onVLC = true;
+
+		cleanup(true);
+		init(Looped, AutoDestroy, OnComplete);
+		
+		_initVlc();
+		
+		if (_vlcPlayer != null && _vlcPlayer.load(SoundURL))
+		{
+			_vlcPlayer.videoTrack = -1;
+			if (OnLoad != null) OnLoad();
+		}
+		else 
+		{
+			FlxG.log.error("FlxStreamSound: Failed to load VLC stream (Player is null or Load failed): " + SoundURL);
+		}
+		return this;
+		#else
 		cleanup(true);
 		
 		_sound = new Sound();
@@ -407,6 +493,7 @@ class FlxSound extends FlxBasic
 		_sound.load(new URLRequest(SoundURL));
 		
 		return init(Looped, AutoDestroy, OnComplete);
+		#end
 	}
 	
 	#if flash11
@@ -480,6 +567,30 @@ class FlxSound extends FlxBasic
 	 */
 	public function play(ForceRestart:Bool = false, StartTime:Float = 0.0, ?EndTime:Float):FlxSound
 	{
+		#if hxvlc
+		if (_onVLC)
+		{
+			if (!exists) return this;
+			if (ForceRestart) cleanup(false, true);
+			else if (playing) return this;
+
+			if (_paused)
+			{
+				resume();
+			}
+			else if (_vlcPlayer != null)
+			{
+				_vlcPlayer.play();
+				if (StartTime > 0) _vlcPlayer.time = Std.int(StartTime);
+				_paused = false;
+				_channel = @:privateAccess new SoundChannel(null, null, null);
+				active = true;
+			}
+			endTime = EndTime;
+			return this;
+		}
+		#end
+
 		if (!exists)
 			return this;
 			
@@ -502,6 +613,21 @@ class FlxSound extends FlxBasic
 	 */
 	public function resume():FlxSound
 	{
+		#if hxvlc
+		if (_onVLC)
+		{
+			if (_paused && _vlcPlayer != null)
+			{
+				_vlcPlayer.resume();
+				_paused = false;
+				if (_channel == null) 
+					_channel = @:privateAccess new SoundChannel(null, null, null);
+				active = true;
+			}
+			return this;
+		}
+		#end
+
 		if (_paused)
 			startSound(_time);
 		return this;
@@ -512,6 +638,20 @@ class FlxSound extends FlxBasic
 	 */
 	public function pause():FlxSound
 	{
+		#if hxvlc
+		if (_onVLC)
+		{
+			if (_vlcPlayer != null)
+			{
+				_vlcPlayer.pause();
+				_paused = true;
+				active = false;
+				_channel = null;
+			}
+			return this;
+		}
+		#end
+
 		if (!playing)
 			return this;
 			
@@ -603,6 +743,13 @@ class FlxSound extends FlxBasic
 			
 		if (_channel != null)
 			_channel.soundTransform = _transform;
+		
+		#if hxvlc
+		if (_vlcPlayer != null && _onVLC)
+		{
+			_vlcPlayer.volume = Std.int(_transform.volume * 100);
+		}
+		#end
 	}
 	
 	/**
@@ -661,6 +808,13 @@ class FlxSound extends FlxBasic
 	 */
 	function cleanup(destroySound:Bool, resetPosition:Bool = true):Void
 	{
+		#if hxvlc
+		if (_vlcPlayer != null) 
+		{
+			try { _vlcPlayer.stop(); } catch(e:Dynamic) {}
+		}
+		#end
+
 		if (destroySound)
 		{
 			reset();
@@ -794,8 +948,14 @@ class FlxSound extends FlxBasic
 		return _time = time;
 	}
 	
-	inline function get_length():Float
+	function get_length():Float
 	{
+		#if hxvlc
+		if (_onVLC && _vlcPlayer != null)
+		{
+			return haxe.Int64.toInt(_vlcPlayer.length);
+		}
+		#end
 		return _length;
 	}
 	
