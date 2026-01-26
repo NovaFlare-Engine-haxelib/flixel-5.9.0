@@ -18,7 +18,7 @@ import openfl.utils.ByteArray;
 #end
 
 #if hxvlc
-import hxvlc.openfl.Video;
+import hxvlc.openfl.Audio;
 import hxvlc.util.Handle;
 #end
 
@@ -216,7 +216,7 @@ class FlxSound extends FlxBasic
 	var _alreadyPaused:Bool = false;
 
 	#if hxvlc
-	private var _vlcPlayer:Video;
+	private var _vlcPlayer:Audio;
 	private var _onVLC:Bool = false;
 	#end
 
@@ -236,8 +236,7 @@ class FlxSound extends FlxBasic
 
 		try {
 			Handle.init();
-			_vlcPlayer = new Video();
-			_vlcPlayer.visible = false;
+			_vlcPlayer = new Audio();
 			
 			_vlcPlayer.onEndReached.add(function() {
 				FlxG.signals.postUpdate.addOnce(function() {
@@ -248,9 +247,6 @@ class FlxSound extends FlxBasic
 				FlxG.signals.postUpdate.addOnce(function() {
 					if (_onVLC) cleanup(true);
 				});
-			});
-			_vlcPlayer.onOpening.add(function() {
-				if (_vlcPlayer.videoTrack != -1) _vlcPlayer.videoTrack = -1;
 			});
 		} catch (e:Dynamic) {
 			FlxG.log.warn("FlxStreamSound: VLC init failed (will retry on load): " + e);
@@ -463,7 +459,6 @@ class FlxSound extends FlxBasic
 		
 		if (_vlcPlayer != null && _vlcPlayer.load(SoundURL))
 		{
-			_vlcPlayer.videoTrack = -1;
 			if (OnLoad != null) OnLoad();
 		}
 		else 
