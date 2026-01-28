@@ -457,9 +457,10 @@ class FlxSound extends FlxBasic
 		
 		_initVlc();
 		
-		if (_vlcPlayer != null && _vlcPlayer.addTrack(SoundURL))
+		if (_vlcPlayer != null && _vlcPlayer.addTrack(SoundURL, null, 1))
 		{
 			if (OnLoad != null) OnLoad();
+			_vlcPlayer.autoDestroy = AutoDestroy;
 		}
 		else 
 		{
@@ -491,10 +492,10 @@ class FlxSound extends FlxBasic
 		#end
 	}
 
-	public function addTrack(url:String, ?options:Array<String>) {
+	public function addTrack(url:String, ?options:Array<String>, id:Int = 9999) {
 		#if hxvlc
 		if (!_onVLC || _vlcPlayer == null) return;
-		_vlcPlayer.addTrack(url, options);
+		_vlcPlayer.addTrack(url, options, id);
 		#end
 	}
 	
