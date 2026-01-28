@@ -18,7 +18,7 @@ import openfl.utils.ByteArray;
 #end
 
 #if hxvlc
-import hxvlc.openfl.Audio;
+import hxvlc.openfl.AudioGroup;
 import hxvlc.util.Handle;
 #end
 
@@ -216,7 +216,7 @@ class FlxSound extends FlxBasic
 	var _alreadyPaused:Bool = false;
 
 	#if hxvlc
-	private var _vlcPlayer:Audio;
+	private var _vlcPlayer:AudioGroup;
 	private var _onVLC:Bool = false;
 	#end
 
@@ -236,7 +236,7 @@ class FlxSound extends FlxBasic
 
 		try {
 			Handle.init();
-			_vlcPlayer = new Audio();
+			_vlcPlayer = new AudioGroup();
 			
 			_vlcPlayer.onEndReached.add(function() {
 				FlxG.signals.postUpdate.addOnce(function() {
@@ -457,7 +457,7 @@ class FlxSound extends FlxBasic
 		
 		_initVlc();
 		
-		if (_vlcPlayer != null && _vlcPlayer.load(SoundURL))
+		if (_vlcPlayer != null && _vlcPlayer.addTrack(SoundURL))
 		{
 			if (OnLoad != null) OnLoad();
 		}
@@ -488,6 +488,13 @@ class FlxSound extends FlxBasic
 		_sound.load(new URLRequest(SoundURL));
 		
 		return init(Looped, AutoDestroy, OnComplete);
+		#end
+	}
+
+	public function addTrack(url:String, ?options:Array<String>) {
+		#if hxvlc
+		if (!_onVLC || _vlcPlayer == null) return;
+		_vlcPlayer.addTrack(url, options);
 		#end
 	}
 	
