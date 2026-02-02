@@ -487,6 +487,11 @@ class FlxCamera extends FlxBasic
 	 * Internal, defines on what axes to `shake()`. Default value is `XY` / both.
 	 */
 	var _fxShakeAxes:FlxAxes = XY;
+	/**
+	 * Internal, per-frame shake offsets applied in updateFlashSpritePosition().
+	 */
+	var _shakeOffsetX:Float = 0;
+	var _shakeOffsetY:Float = 0;
 
 	/**
 	 * Internal, used for repetitive calculations and added to help avoid costly allocations.
@@ -497,6 +502,10 @@ class FlxCamera extends FlxBasic
 	 * The filters array to be applied to the camera.
 	 */
 	public var filters:Null<Array<BitmapFilter>> = null;
+	/**
+	 * Internal, cache last-applied filters state to avoid redundant per-frame assignments.
+	 */
+	var _lastFiltersApplied:Null<Array<BitmapFilter>> = null;
 
 	@:deprecated("_filters is deprecated, use filters instead")
 	var _filters(get, set):Null<Array<BitmapFilter>>;
@@ -1232,10 +1241,18 @@ class FlxCamera extends FlxBasic
 		updateFlash(elapsed);
 		updateFade(elapsed);
 
-		flashSprite.filters = filtersEnabled ? filters : null;
+		if (flashSprite != null)
+		{
+			var targetFilters = filtersEnabled ? filters : null;
+			if (targetFilters != _lastFiltersApplied)
+			{
+				flashSprite.filters = targetFilters;
+				_lastFiltersApplied = targetFilters;
+			}
+		}
 
-		updateFlashSpritePosition();
 		updateShake(elapsed);
+		updateFlashSpritePosition();
 	}
 
 	/**
@@ -1418,6 +1435,8 @@ class FlxCamera extends FlxBasic
 				{
 					_fxShakeComplete();
 				}
+				_shakeOffsetX = 0;
+				_shakeOffsetY = 0;
 			}
 			else
 			{
@@ -1428,7 +1447,7 @@ class FlxCamera extends FlxBasic
 					if (pixelPerfect)
 						shakePixels = Math.round(shakePixels);
 					
-					flashSprite.x += shakePixels * zoom * FlxG.scaleMode.scale.x;
+					_shakeOffsetX = shakePixels * zoom * FlxG.scaleMode.scale.x;
 				}
 				
 				if (_fxShakeAxes.y)
@@ -1437,9 +1456,14 @@ class FlxCamera extends FlxBasic
 					if (pixelPerfect)
 						shakePixels = Math.round(shakePixels);
 					
-					flashSprite.y += shakePixels * zoom * FlxG.scaleMode.scale.y;
+					_shakeOffsetY = shakePixels * zoom * FlxG.scaleMode.scale.y;
 				}
 			}
+		}
+		else
+		{
+			_shakeOffsetX = 0;
+			_shakeOffsetY = 0;
 		}
 	}
 
@@ -1451,8 +1475,8 @@ class FlxCamera extends FlxBasic
 	{
 		if (flashSprite != null)
 		{
-			flashSprite.x = x * FlxG.scaleMode.scale.x + _flashOffset.x;
-			flashSprite.y = y * FlxG.scaleMode.scale.y + _flashOffset.y;
+			flashSprite.x = x * FlxG.scaleMode.scale.x + _flashOffset.x + _shakeOffsetX;
+			flashSprite.y = y * FlxG.scaleMode.scale.y + _flashOffset.y + _shakeOffsetY;
 		}
 	}
 
@@ -1960,8 +1984,7 @@ class FlxCamera extends FlxBasic
 
 		calcMarginX();
 		calcMarginY();
-
-		updateScrollRect();
+		
 		updateInternalSpritePositions();
 
 		FlxG.cameras.cameraResized.dispatch(this);
@@ -1975,6 +1998,7 @@ class FlxCamera extends FlxBasic
 	{
 		updateFlashOffset();
 		setScale(scaleX, scaleY);
+		updateScrollRect();
 	}
 	
 	/**

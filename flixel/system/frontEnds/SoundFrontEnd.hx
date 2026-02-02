@@ -350,6 +350,7 @@ class SoundFrontEnd
 
 		onVolumeChange.dispatch(muted ? 0 : volume);
 
+		applyGlobalVolume();
 		showSoundTray(true);
 	}
 
@@ -476,7 +477,23 @@ class SoundFrontEnd
 
 		onVolumeChange.dispatch(muted ? 0 : Volume);
 
+		applyGlobalVolume();
 		return volume = Volume;
+	}
+
+	function applyGlobalVolume():Void
+	{
+		if (music != null && music.exists)
+		{
+			music.updateTransform();
+		}
+		for (sound in list.members)
+		{
+			if (sound != null && sound.exists)
+			{
+				sound.updateTransform();
+			}
+		}
 	}
 }
 #end

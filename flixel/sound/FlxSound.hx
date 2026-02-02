@@ -331,6 +331,8 @@ class FlxSound extends FlxBasic
 
 				_time = haxe.Int64.toInt(_vlcPlayer.time);
 			}
+
+			updateTransform();
 			
 			if (endTime != null && _time >= endTime)
 			{
@@ -739,6 +741,7 @@ class FlxSound extends FlxBasic
 	 * Call after adjusting the volume to update the sound channel's settings.
 	 */
 	@:allow(flixel.sound.FlxSoundGroup)
+	@:allow(flixel.system.frontEnds.SoundFrontEnd)
 	function updateTransform():Void
 	{
 		_transform.volume = #if FLX_SOUND_SYSTEM (FlxG.sound.muted ? 0 : 1) * FlxG.sound.volume * #end
@@ -750,7 +753,7 @@ class FlxSound extends FlxBasic
 		#if hxvlc
 		if (_vlcPlayer != null && _onVLC)
 		{
-			_vlcPlayer.volume = Std.int(_transform.volume * 100);
+			_vlcPlayer.volume = _transform.volume;
 		}
 		#end
 	}
