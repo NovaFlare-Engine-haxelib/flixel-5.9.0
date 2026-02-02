@@ -105,6 +105,10 @@ class FlxGame extends Sprite
 	 * Total number of milliseconds elapsed since game start.
 	 */
 	var _total:Int = 0;
+	/**
+	 * Ticks at the last draw call for computing drawElapsed.
+	 */
+	var _lastDrawTicks:Int = 0;
 
 	/**
 	 * Time stamp of game startup. Needed on JS where `Lib.getTimer()`
@@ -787,12 +791,40 @@ class FlxGame extends Sprite
 		}
 		else
 		{
-			FlxG.elapsed = FlxG.timeScale * (_elapsedMS / 1000); // variable timestep
-
+			var e = FlxG.timeScale * (_elapsedMS / 1000); // variable timestep
 			var max = FlxG.maxElapsed * FlxG.timeScale;
-			if (FlxG.elapsed > max)
-				FlxG.elapsed = max;
+			if (e > max)
+				e = max;
+
+			FlxG.elapsed = e;
 		}
+	}
+
+	function updateDrawElapsed():Void
+	{
+		if (FlxG.fixedTimestep)
+		{
+			var fr = (stage != null && stage.frameRate > 0) ? stage.frameRate : FlxG.drawFramerate;
+			FlxG.drawElapsed = FlxG.timeScale * (1 / fr);
+			return;
+		}
+
+		var now = getTicks();
+		if (_lastDrawTicks == 0)
+		{
+			_lastDrawTicks = now;
+			FlxG.drawElapsed = 0;
+			return;
+		}
+		var dtMS = now - _lastDrawTicks;
+		_lastDrawTicks = now;
+
+		var e = FlxG.timeScale * (dtMS / 1000);
+		var max = FlxG.maxElapsed * FlxG.timeScale;
+		if (e > max)
+			e = max;
+
+		FlxG.drawElapsed = e;
 	}
 
 	function updateInput():Void
@@ -868,6 +900,7 @@ class FlxGame extends Sprite
 			ticks = getTicks();
 		#end
 
+		updateDrawElapsed();
 		FlxG.signals.preDraw.dispatch();
 
 		if (FlxG.renderTile)

@@ -159,6 +159,9 @@ class FlxG
 	 */
 	@:allow(flixel.FlxGame.updateElapsed)
 	public static var elapsed(default, null):Float = 0;
+	@:allow(flixel.FlxGame.updateElapsed)
+	@:allow(flixel.FlxGame.updateDrawElapsed)
+	public static var drawElapsed(default, null):Float = 0;
 
 	/**
 	 * Useful when the timestep is NOT fixed (i.e. variable),
@@ -338,6 +341,8 @@ class FlxG
 	 * Contains system-wide signals like `gameResized` or `preStateSwitch`.
 	 */
 	public static var signals(default, null):SignalFrontEnd = new SignalFrontEnd();
+
+	public static var isFullFrame(get, null):Bool = true;
 
 	/**
 	 * Contains helper functions relating to retrieving assets
@@ -757,6 +762,7 @@ class FlxG
 		timeScale = 1.0;
 		animationTimeScale = 1.0;
 		elapsed = 0;
+		drawElapsed = 0;
 		maxElapsed = 0.1;
 		worldBounds.set(-10, -10, width + 20, height + 20);
 		worldDivisions = 6;
@@ -825,6 +831,11 @@ class FlxG
 			game._maxAccumulation = game._stepMS;
 
 		return value;
+	}
+
+	static function get_isFullFrame():Bool
+	{
+		return FlxG.stage.application.window.isFullFrame;
 	}
 
 	static function get_fullscreen():Bool

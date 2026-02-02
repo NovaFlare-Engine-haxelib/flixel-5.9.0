@@ -216,7 +216,7 @@ class FlxSound extends FlxBasic
 	var _alreadyPaused:Bool = false;
 
 	#if hxvlc
-	private var _vlcPlayer:AudioGroup;
+	public var _vlcPlayer:AudioGroup;
 	private var _onVLC:Bool = false;
 	#end
 

@@ -25,6 +25,7 @@ import openfl.Vector;
 import openfl.display.BlendMode;
 import openfl.filters.BitmapFilter;
 import openfl.Lib;
+import haxe.ds.StringMap;
 
 using flixel.util.FlxColorTransformUtil;
 
@@ -45,6 +46,8 @@ private typedef FlxDrawItem = flixel.graphics.tile.FlxDrawQuadsItem;
  */
 class FlxCamera extends FlxBasic
 {
+	public static var enableBatchProfiler:Bool = false;
+		
 	/**
 	 * Any `FlxCamera` with a zoom of 0 (the default value) will have this zoom value.
 	 */
@@ -599,6 +602,42 @@ class FlxCamera extends FlxBasic
 
 	static var renderRect:FlxRect = FlxRect.get();
 
+	#if FLX_DEBUG
+	var _batchBreakdown:StringMap<Int> = new StringMap();
+	inline function _bpReset():Void
+	{
+		_batchBreakdown = new StringMap();
+	}
+	inline function _bpIncr(key:String):Void
+	{
+		var v = _batchBreakdown.get(key);
+		_batchBreakdown.set(key, v == null ? 1 : v + 1);
+	}
+	function _bpSummary():String
+	{
+		var a:Array<String> = [];
+		for (k in _batchBreakdown.keys())
+		{
+			a.push(k + ":" + _batchBreakdown.get(k));
+		}
+		return a.length == 0 ? "" : ("BatchSplit c" + ID + " [" + a.join(", ") + "]");
+	}
+	public function batchProfilerReset():Void
+	{
+		#if FLX_DEBUG
+		_bpReset();
+		#end
+	}
+	public function batchProfilerSummary():String
+	{
+		#if FLX_DEBUG
+		return _bpSummary();
+		#else
+		return "";
+		#end
+	}
+	#end
+
 	@:noCompletion
 	public function startQuadBatch(graphic:FlxGraphic, colored:Bool, hasColorOffsets:Bool = false, ?blend:BlendMode, smooth:Bool = false, ?shader:FlxShader)
 	{
@@ -620,6 +659,23 @@ class FlxCamera extends FlxBasic
 		{
 			return _headTiles;
 		}
+
+		#if FLX_DEBUG
+		if (enableBatchProfiler && _currentDrawItem != null)
+		{
+			if (_currentDrawItem.type != FlxDrawItemType.TILES) _bpIncr("type");
+			else
+			{
+				if (_headTiles.graphics != graphic) _bpIncr("graphic");
+				if (_headTiles.colored != colored) _bpIncr("colored");
+				if (_headTiles.hasColorOffsets != hasColorOffsets) _bpIncr("colorOffsets");
+				if (_headTiles.blending != blendInt) _bpIncr("blending");
+				if (_headTiles.blend != blend) _bpIncr("blend");
+				if (_headTiles.antialiasing != smooth) _bpIncr("antialiasing");
+				if (_headTiles.shader != shader) _bpIncr("shader");
+			}
+		}
+		#end
 
 		if (_storageTilesHead != null)
 		{
@@ -684,6 +740,25 @@ class FlxCamera extends FlxBasic
 		{
 			return _headTriangles;
 		}
+
+		#if FLX_DEBUG
+		if (enableBatchProfiler && _currentDrawItem != null)
+		{
+			if (_currentDrawItem.type != FlxDrawItemType.TRIANGLES) _bpIncr("type");
+			else
+			{
+				if (_headTriangles.graphics != graphic) _bpIncr("graphic");
+				if (_headTriangles.antialiasing != smoothing) _bpIncr("antialiasing");
+				if (_headTriangles.colored != isColored) _bpIncr("colored");
+				if (_headTriangles.blending != blendInt) _bpIncr("blending");
+				if (_headTriangles.blend != blend) _bpIncr("blend");
+				#if !flash
+				if (_headTriangles.hasColorOffsets != hasColorOffsets) _bpIncr("colorOffsets");
+				if (_headTriangles.shader != shader) _bpIncr("shader");
+				#end
+			}
+		}
+		#end
 
 		return getNewDrawTrianglesItem(graphic, smoothing, isColored, blend, hasColorOffsets, shader);
 	}
@@ -1995,6 +2070,8 @@ class FlxCamera extends FlxBasic
 
 	function set_zoom(Zoom:Float):Float
 	{
+		if (zoom == ((Zoom == 0) ? defaultZoom : Zoom)) return zoom;
+
 		zoom = (Zoom == 0) ? defaultZoom : Zoom;
 		setScale(zoom, zoom);
 		return zoom;

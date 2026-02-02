@@ -281,13 +281,18 @@ class CameraFrontEnd
 				// Clearing camera's debug sprite
 				#if FLX_DEBUG
 				camera.debugLayer.graphics.clear();
+				if (flixel.FlxCamera.enableBatchProfiler) camera.batchProfilerReset();
 				#end
 			}
 
 			if (FlxG.renderBlit)
 			{
-				camera.fill(camera.bgColor, camera.useBgAlphaBlending);
-				camera.screen.dirty = true;
+				var blendAlpha = camera.useBgAlphaBlending;
+				if (camera.bgColor.alpha == 0)
+				{
+					blendAlpha = false;
+				}
+				camera.fill(camera.bgColor, blendAlpha);
 			}
 			else
 			{
@@ -335,6 +340,13 @@ class CameraFrontEnd
 
 				camera.screen.dirty = true;
 			}
+			#if FLX_DEBUG
+			if (FlxG.renderTile && flixel.FlxCamera.enableBatchProfiler)
+			{
+				var s = camera.batchProfilerSummary();
+				if (s != null && s != "") flixel.FlxG.log.add(s);
+			}
+			#end
 		}
 	}
 

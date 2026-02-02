@@ -1274,38 +1274,31 @@ class FlxTypedTilemap<Tile:FlxTile> extends FlxBaseTilemap<Tile>
 		var debugTile:BitmapData;
 		#end
 
-		for (row in 0...screenRows)
+		if (FlxG.renderBlit)
 		{
-			columnIndex = rowIndex;
-			_flashPoint.x = 0;
-
-			for (column in 0...screenColumns)
+			for (row in 0...screenRows)
 			{
-				tile = getTileData(columnIndex);
+				columnIndex = rowIndex;
+				_flashPoint.x = 0;
 
-				if (tile != null && tile.visible && tile.frame.type != FlxFrameType.EMPTY)
+				for (column in 0...screenColumns)
 				{
-					frame = tile.frame;
+					tile = getTileData(columnIndex);
 
-					if (FlxG.renderBlit)
+					if (tile != null && tile.visible && tile.frame.type != FlxFrameType.EMPTY)
 					{
+						frame = tile.frame;
 						frame.paint(buffer.pixels, _flashPoint, true);
 
 						#if FLX_DEBUG
 						if (FlxG.debugger.drawDebug && !ignoreDrawDebug)
 						{
 							if (tile.allowCollisions <= NONE)
-							{
 								debugTile = _debugTileNotSolid;
-							}
 							else if (tile.allowCollisions != ANY)
-							{
 								debugTile = _debugTilePartial;
-							}
 							else
-							{
 								debugTile = _debugTileSolid;
-							}
 
 							offset.addToFlash(_flashPoint);
 							buffer.pixels.copyPixels(debugTile, _debugRect, _flashPoint, null, null, true);
@@ -1313,37 +1306,41 @@ class FlxTypedTilemap<Tile:FlxTile> extends FlxBaseTilemap<Tile>
 						}
 						#end
 					}
-					else
-					{
-						drawX = _helperPoint.x + (columnIndex % widthInTiles) * scaledWidth;
-						drawY = _helperPoint.y + Math.floor(columnIndex / widthInTiles) * scaledHeight;
 
-						_matrix.identity();
-
-						if (frame.angle != FlxFrameAngle.ANGLE_0)
-						{
-							frame.prepareMatrix(_matrix);
-						}
-
-						var scaleX:Float = scale.x;
-						var scaleY:Float = scale.y;
-
-						_matrix.scale(scaleX, scaleY);
-						_matrix.translate(drawX, drawY);
-
-						drawItem.addQuad(frame, _matrix, colorTransform);
-					}
+					_flashPoint.x += tileWidth;
+					columnIndex++;
 				}
 
-				if (FlxG.renderBlit)
-					_flashPoint.x += tileWidth;
-
-				columnIndex++;
-			}
-
-			if (FlxG.renderBlit)
 				_flashPoint.y += tileHeight;
-			rowIndex += widthInTiles;
+				rowIndex += widthInTiles;
+			}
+		}
+		else
+		{
+			for (row in 0...screenRows)
+			{
+				columnIndex = rowIndex;
+				for (column in 0...screenColumns)
+				{
+					tile = getTileData(columnIndex);
+					if (tile != null && tile.visible && tile.frame.type != FlxFrameType.EMPTY)
+					{
+						frame = tile.frame;
+						drawX = _helperPoint.x + (columnIndex % widthInTiles) * scaledWidth;
+						drawY = _helperPoint.y + Math.floor(columnIndex / widthInTiles) * scaledHeight;
+						_matrix.identity();
+						if (frame.angle != FlxFrameAngle.ANGLE_0)
+							frame.prepareMatrix(_matrix);
+						var scaleX:Float = scale.x;
+						var scaleY:Float = scale.y;
+						_matrix.scale(scaleX, scaleY);
+						_matrix.translate(drawX, drawY);
+						drawItem.addQuad(frame, _matrix, colorTransform);
+					}
+					columnIndex++;
+				}
+				rowIndex += widthInTiles;
+			}
 		}
 
 		buffer.x = screenXInTiles * scaledTileWidth;
@@ -1493,6 +1490,7 @@ class FlxTypedTilemap<Tile:FlxTile> extends FlxBaseTilemap<Tile>
 		setDirty();
 		return blend = value;
 	}
+
 
 	function setScaleXYCallback(scale:FlxPoint):Void
 	{
