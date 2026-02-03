@@ -500,6 +500,13 @@ class FlxSound extends FlxBasic
 		_vlcPlayer.addTrack(url, options, id);
 		#end
 	}
+
+	public function releaseMedia(id:Int) {
+		#if hxvlc
+		if (!_onVLC || _vlcPlayer == null) return;
+		_vlcPlayer.releaseMedia(id);
+		#end
+	}
 	
 	#if flash11
 	/**
