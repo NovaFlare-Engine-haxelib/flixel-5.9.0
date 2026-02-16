@@ -342,7 +342,7 @@ class FlxG
 	 */
 	public static var signals(default, null):SignalFrontEnd = new SignalFrontEnd();
 
-	public static var isFullFrame(get, null):Bool = true;
+	public static var isFullFrame:Bool = true;
 
 	/**
 	 * Contains helper functions relating to retrieving assets
@@ -831,11 +831,6 @@ class FlxG
 			game._maxAccumulation = game._stepMS;
 
 		return value;
-	}
-
-	static function get_isFullFrame():Bool
-	{
-		return FlxG.stage.application.window.isFullFrame;
 	}
 
 	static function get_fullscreen():Bool

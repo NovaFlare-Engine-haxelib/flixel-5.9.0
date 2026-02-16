@@ -516,6 +516,12 @@ class FlxCamera extends FlxBasic
 	public var initialZoom(default, null):Float = 1;
 
 	/**
+	 * Internal, used to avoid redundant `cameraResized` dispatch when zooming in.
+	 */
+	var _lastScaleX:Float = 0.0;
+	var _lastScaleY:Float = 0.0;
+
+	/**
 	 * Internal helper variable for doing better wipes/fills between renders.
 	 * Used it blit render mode only (in `fill()` method).
 	 */
@@ -1987,7 +1993,14 @@ class FlxCamera extends FlxBasic
 		
 		updateInternalSpritePositions();
 
-		FlxG.cameras.cameraResized.dispatch(this);
+		if (scaleX < _lastScaleX || scaleY < _lastScaleY ||
+			scaleX > _lastScaleX * 1.5 || scaleY > _lastScaleY * 1.5 ||
+			_lastScaleX == 0.0 || _lastScaleY == 0.0)
+		{
+			FlxG.cameras.cameraResized.dispatch(this);
+			_lastScaleX = scaleX;
+			_lastScaleY = scaleY;
+		}
 	}
 
 	/**
@@ -1999,6 +2012,10 @@ class FlxCamera extends FlxBasic
 		updateFlashOffset();
 		setScale(scaleX, scaleY);
 		updateScrollRect();
+
+		FlxG.cameras.cameraResized.dispatch(this);
+		_lastScaleX = scaleX;
+		_lastScaleY = scaleY;
 	}
 	
 	/**
