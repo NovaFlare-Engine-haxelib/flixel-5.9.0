@@ -6,7 +6,7 @@ import flixel.util.FlxDestroyUtil.IFlxDestroyable;
 interface IFlxInputManager extends IFlxDestroyable
 {
 	function reset():Void;
-	private function update():Void;
+	private function handleInput():Void;
 	private function onFocus():Void;
 	private function onFocusLost():Void;
 }

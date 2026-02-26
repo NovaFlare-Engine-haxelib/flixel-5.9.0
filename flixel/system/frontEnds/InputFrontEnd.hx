@@ -107,11 +107,11 @@ class InputFrontEnd
 	function new() {}
 
 	@:allow(flixel.FlxGame)
-	inline function update():Void
+	inline function handleInput():Void
 	{
 		for (input in list)
 		{
-			input.update();
+			input.handleInput();
 		}
 	}
 

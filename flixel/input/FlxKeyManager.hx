@@ -263,13 +263,13 @@ class FlxKeyManager<Key:Int, KeyList:FlxBaseKeyList> implements IFlxInputManager
 	/**
 	 * Updates the key states (for tracking just pressed, just released, etc).
 	 */
-	function update():Void
+	function handleInput():Void
 	{
 		for (key in _keyListArray)
 		{
 			if (key != null)
 			{
-				key.update();
+				key.handleInput();
 			}
 		}
 	}

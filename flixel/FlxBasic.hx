@@ -133,6 +133,14 @@ class FlxBasic implements IFlxDestroyable
 	}
 
 	/**
+	 * Override this function to handle input logic.
+	 * This is called before update() by the state.
+	 */
+	public function handleInput(elapsed:Float):Void
+	{
+	}
+
+	/**
 	 * Override this function to control how the object is drawn.
 	 * Doing so is rarely necessary, but can be very useful.
 	 */
@@ -263,6 +271,7 @@ interface IFlxBasic
 
 	function draw():Void;
 	function update(elapsed:Float):Void;
+	function handleInput(elapsed:Float):Void;
 	function destroy():Void;
 
 	function kill():Void;

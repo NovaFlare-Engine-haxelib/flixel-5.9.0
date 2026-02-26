@@ -217,6 +217,11 @@ class FlxTypedSpriteGroup<T:FlxSprite> extends FlxSprite
 		return result;
 	}
 
+	override public function handleInput(elapsed:Float):Void
+	{
+		group.handleInput(elapsed);
+	}
+
 	override public function update(elapsed:Float):Void
 	{
 		group.update(elapsed);

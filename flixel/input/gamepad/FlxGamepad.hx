@@ -196,7 +196,7 @@ class FlxGamepad implements IFlxDestroyable
 	/**
 	 * Updates the key states (for tracking just pressed, just released, etc).
 	 */
-	public function update():Void
+	public function handleInput():Void
 	{
 		#if FLX_GAMEINPUT_API
 		var control:GameInputControl;
@@ -257,7 +257,7 @@ class FlxGamepad implements IFlxDestroyable
 		{
 			if (button != null)
 			{
-				button.update();
+				button.handleInput();
 			}
 		}
 	}

@@ -29,7 +29,7 @@ class FlxInput<T> implements IFlxInput
 		current = pressed ? JUST_RELEASED : RELEASED;
 	}
 
-	public function update():Void
+	public function handleInput():Void
 	{
 		if (last == JUST_RELEASED && current == JUST_RELEASED)
 		{

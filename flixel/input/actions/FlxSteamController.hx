@@ -325,7 +325,7 @@ private class FlxSteamUpdater implements IFlxInputManager
 	public function reset():Void {}
 
 	// run the steam API every frame if steam is detected
-	function update():Void
+	function handleInput():Void
 	{
 		#if FLX_STEAMWRAP
 		Steam.onEnterFrame();

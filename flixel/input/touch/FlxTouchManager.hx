@@ -250,7 +250,7 @@ class FlxTouchManager implements IFlxInputManager
 	 * Called by the internal game loop to update the touch position in the game world.
 	 * Also updates the just pressed/just released flags.
 	 */
-	function update():Void
+	function handleInput():Void
 	{
 		var i:Int = list.length - 1;
 		var touch:FlxTouch;
@@ -269,7 +269,7 @@ class FlxTouchManager implements IFlxInputManager
 			}
 			else // Touch is active currently
 			{
-				touch.update();
+				touch.handleInput();
 			}
 
 			i--;

@@ -150,6 +150,20 @@ class FlxTypedGroup<T:FlxBasic> extends FlxBasic
 	}
 
 	/**
+	 * Automatically goes through and calls handleInput on everything you added.
+	 */
+	override public function handleInput(elapsed:Float):Void
+	{
+		for (basic in members)
+		{
+			if (basic != null && basic.exists && basic.active)
+			{
+				basic.handleInput(elapsed);
+			}
+		}
+	}
+
+	/**
 	 * Automatically goes through and calls update on everything you added.
 	 */
 	override public function update(elapsed:Float):Void

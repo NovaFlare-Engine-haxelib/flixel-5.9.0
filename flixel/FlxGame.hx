@@ -748,8 +748,10 @@ class FlxGame extends Sprite
 		updateElapsed();
 
 		FlxG.signals.preUpdate.dispatch();
-
+		
+		_state.tryHandleInput(FlxG.elapsed);
 		updateInput();
+		
 
 		#if FLX_POST_PROCESS
 		if (postProcesses[0] != null)
@@ -869,10 +871,10 @@ class FlxGame extends Sprite
 		}
 		else
 		{
-			FlxG.inputs.update();
+			FlxG.inputs.handleInput();
 		}
 		#else
-		FlxG.inputs.update();
+		FlxG.inputs.handleInput();
 		#end
 
 		#if FLX_RECORD

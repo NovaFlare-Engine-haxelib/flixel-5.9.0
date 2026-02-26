@@ -507,7 +507,7 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 	 * Called by the internal game loop to update the mouse pointer's position in the game world.
 	 * Also updates the just pressed/just released flags.
 	 */
-	function update():Void
+	function handleInput():Void
 	{
 		_prevX = x;
 		_prevY = y;
@@ -528,10 +528,10 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 		#end
 
 		// Update the buttons
-		_leftButton.update();
+		_leftButton.handleInput();
 		#if FLX_MOUSE_ADVANCED
-		_middleButton.update();
-		_rightButton.update();
+		_middleButton.handleInput();
+		_rightButton.handleInput();
 		#end
 
 		// Update the wheel

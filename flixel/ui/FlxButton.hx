@@ -318,9 +318,9 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 	/**
 	 * Called by the game loop automatically, handles mouseover and click detection.
 	 */
-	override public function update(elapsed:Float):Void
+	override public function handleInput(elapsed:Float):Void
 	{
-		super.update(elapsed);
+		super.handleInput(elapsed);
 
 		if (visible)
 		{
@@ -337,7 +337,7 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 			}
 		}
 
-		input.update();
+		input.handleInput();
 	}
 
 	function updateStatusAnimation():Void

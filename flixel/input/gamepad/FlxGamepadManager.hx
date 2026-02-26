@@ -578,11 +578,11 @@ class FlxGamepadManager implements IFlxInputManager
 	/**
 	 * Updates the key states (for tracking just pressed, just released, etc).
 	 */
-	function update():Void
+	function handleInput():Void
 	{
 		for (gamepad in _gamepads)
 			if (gamepad != null)
-				gamepad.update();
+				gamepad.handleInput();
 	}
 
 	inline function onFocus():Void {}

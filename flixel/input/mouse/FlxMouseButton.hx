@@ -28,9 +28,9 @@ class FlxMouseButton extends FlxInput<Int> implements IFlxDestroyable
 	/**
 	 * Updates the last and current state of this mouse button.
 	 */
-	override public function update():Void
+	override public function handleInput():Void
 	{
-		super.update();
+		super.handleInput();
 
 		if (justPressed)
 		{

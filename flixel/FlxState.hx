@@ -107,6 +107,11 @@ class FlxState extends FlxContainer
 	 */
 	public function create():Void {}
 
+	override public function update(elapsed:Float):Void
+	{
+		super.update(elapsed);
+	}
+
 	override public function draw():Void
 	{
 		if (persistentDraw || subState == null)
@@ -233,6 +238,18 @@ class FlxState extends FlxContainer
 	 * @param   Height   The new window Height
 	 */
 	public function onResize(Width:Int, Height:Int):Void {}
+
+	@:allow(flixel.FlxGame)
+	function tryHandleInput(elapsed:Float):Void
+	{
+		if (persistentUpdate || subState == null)
+			handleInput(elapsed);
+
+		if (subState != null)
+		{
+			subState.tryHandleInput(elapsed);
+		}
+	}
 
 	@:allow(flixel.FlxGame)
 	function tryUpdate(elapsed:Float):Void

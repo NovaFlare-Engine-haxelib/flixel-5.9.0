@@ -521,7 +521,7 @@ class FlxActionManager implements IFlxInputManager implements IFlxDestroyable
 		#end
 	}
 
-	function update():Void
+	function handleInput():Void
 	{
 		register.update(sets);
 	}
