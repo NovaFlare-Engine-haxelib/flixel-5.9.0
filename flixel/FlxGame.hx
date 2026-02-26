@@ -748,7 +748,11 @@ class FlxGame extends Sprite
 		updateElapsed();
 
 		FlxG.signals.preUpdate.dispatch();
-		
+
+		#if FLX_SOUND_SYSTEM
+		FlxG.sound.update(FlxG.elapsed);
+		#end
+
 		_state.tryHandleInput(FlxG.elapsed);
 		updateInput();
 		
@@ -758,9 +762,6 @@ class FlxGame extends Sprite
 			postProcesses[0].update(FlxG.elapsed);
 		#end
 
-		#if FLX_SOUND_SYSTEM
-		FlxG.sound.update(FlxG.elapsed);
-		#end
 		FlxG.plugins.update(FlxG.elapsed);
 
 		_state.tryUpdate(FlxG.elapsed);
