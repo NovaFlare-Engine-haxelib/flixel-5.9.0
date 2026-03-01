@@ -749,13 +749,12 @@ class FlxGame extends Sprite
 
 		FlxG.signals.preUpdate.dispatch();
 
+		_state.tryHandleInput(FlxG.elapsed);
+		updateInput();
+
 		#if FLX_SOUND_SYSTEM
 		FlxG.sound.update(FlxG.elapsed);
 		#end
-
-		_state.tryHandleInput(FlxG.elapsed);
-		updateInput();
-		
 
 		#if FLX_POST_PROCESS
 		if (postProcesses[0] != null)
