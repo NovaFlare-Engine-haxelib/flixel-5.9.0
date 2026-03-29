@@ -112,6 +112,16 @@ class FlxState extends FlxContainer
 		super.update(elapsed);
 	}
 
+	override public function fixedStepUpdate(elapsed:Float):Void
+	{
+		super.fixedStepUpdate(elapsed);
+	}
+
+	override public function drawUpdate(elapsed:Float):Void
+	{
+		super.drawUpdate(elapsed);
+	}
+
 	override public function draw():Void
 	{
 		if (persistentDraw || subState == null)
@@ -252,6 +262,18 @@ class FlxState extends FlxContainer
 	}
 
 	@:allow(flixel.FlxGame)
+	function tryFixedStepUpdate(elapsed:Float):Void
+	{
+		if (persistentUpdate || subState == null)
+			fixedStepUpdate(elapsed);
+
+		if (subState != null)
+		{
+			subState.tryFixedStepUpdate(elapsed);
+		}
+	}
+
+	@:allow(flixel.FlxGame)
 	function tryUpdate(elapsed:Float):Void
 	{
 		if (persistentUpdate || subState == null)
@@ -265,6 +287,18 @@ class FlxState extends FlxContainer
 		if (subState != null)
 		{
 			subState.tryUpdate(elapsed);
+		}
+	}
+
+	@:allow(flixel.FlxGame)
+	function tryDrawUpdate(elapsed:Float):Void
+	{
+		if (persistentDraw || subState == null)
+			drawUpdate(elapsed);
+
+		if (subState != null)
+		{
+			subState.tryDrawUpdate(elapsed);
 		}
 	}
 

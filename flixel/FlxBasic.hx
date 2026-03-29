@@ -140,6 +140,14 @@ class FlxBasic implements IFlxDestroyable
 	{
 	}
 
+	public function fixedStepUpdate(elapsed:Float):Void
+	{
+	}
+
+	public function drawUpdate(elapsed:Float):Void
+	{
+	}
+
 	/**
 	 * Override this function to control how the object is drawn.
 	 * Doing so is rarely necessary, but can be very useful.

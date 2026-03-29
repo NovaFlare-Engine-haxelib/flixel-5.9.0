@@ -80,6 +80,9 @@ class FlxG
 	 */
 	public static var fixedTimestep:Bool = true;
 
+	static var _fixedStepMS:Int = 50;
+	public static var fixedStepMS(get, set):Int;
+
 	/**
 	 * How fast or slow time should pass in the game; default is `1.0`.
 	 */
@@ -806,13 +809,48 @@ class FlxG
 
 		updateFramerate = value;
 
-		game._stepMS = Math.abs(1000 / value);
-		game._stepSeconds = game._stepMS / 1000;
+		if (!fixedTimestep)
+		{
+			game._stepMS = Math.abs(1000 / value);
+			game._stepSeconds = game._stepMS / 1000;
+		}
 
 		if (game._maxAccumulation < game._stepMS)
 			game._maxAccumulation = game._stepMS;
 
+		#if !flash
+		if (game.stage != null && game.stage.window != null && !fixedTimestep)
+			game.stage.window.frameRate = updateFramerate;
+		#end
+
 		return value;
+	}
+
+	static function set_fixedStepMS(value:Int):Int
+	{
+		if (value < 1) value = 1;
+		_fixedStepMS = value;
+
+		if (game != null)
+		{
+			game._stepMS = _fixedStepMS;
+			game._stepSeconds = game._stepMS / 1000;
+
+			if (game._maxAccumulation < game._stepMS)
+				game._maxAccumulation = game._stepMS;
+
+			#if !flash
+			if (game.stage != null && game.stage.window != null && fixedTimestep)
+				game.stage.window.frameRate = Std.int(1000 / _fixedStepMS);
+			#end
+		}
+
+		return _fixedStepMS;
+	}
+
+	static inline function get_fixedStepMS():Int
+	{
+		return _fixedStepMS;
 	}
 
 	static function set_drawFramerate(value:Int):Int
@@ -822,8 +860,21 @@ class FlxG
 
 		drawFramerate = Std.int(Math.abs(value));
 
+		#if !flash
+		if (game.stage != null && game.stage.window != null)
+		{
+			game.stage.window.lockRender = true;
+			game.stage.window.drawFrameRate = drawFramerate;
+			game.stage.window.frameRate = fixedTimestep ? Std.int(1000 / _fixedStepMS) : updateFramerate;
+		}
+		else if (game.stage != null)
+		{
+			game.stage.frameRate = drawFramerate;
+		}
+		#else
 		if (game.stage != null)
 			game.stage.frameRate = drawFramerate;
+		#end
 
 		game._maxAccumulation = 2000 / drawFramerate - 1;
 

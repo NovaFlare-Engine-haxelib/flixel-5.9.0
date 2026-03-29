@@ -286,6 +286,7 @@ class FlxGame extends Sprite
 		// Basic display and update setup stuff
 		FlxG.init(this, gameWidth, gameHeight);
 
+		FlxG.fixedStepMS = FlxG.fixedStepMS;
 		FlxG.updateFramerate = updateFramerate;
 		FlxG.drawFramerate = drawFramerate;
 		_accumulator = _stepMS;
@@ -334,7 +335,20 @@ class FlxGame extends Sprite
 		// Set up the view window and double buffering
 		stage.scaleMode = StageScaleMode.NO_SCALE;
 		stage.align = StageAlign.TOP_LEFT;
+		#if !flash
+		if (stage.window != null)
+		{
+			stage.window.lockRender = true;
+			stage.window.drawFrameRate = FlxG.drawFramerate;
+			stage.window.frameRate = FlxG.fixedTimestep ? Std.int(1000 / FlxG.fixedStepMS) : FlxG.updateFramerate;
+		}
+		else
+		{
+			stage.frameRate = FlxG.drawFramerate;
+		}
+		#else
 		stage.frameRate = FlxG.drawFramerate;
+		#end
 
 		addChild(_inputContainer);
 
@@ -570,6 +584,8 @@ class FlxGame extends Sprite
 
 			if (FlxG.fixedTimestep)
 			{
+				_stepMS = FlxG.fixedStepMS;
+				_stepSeconds = _stepMS / 1000;
 				_accumulator += _elapsedMS;
 				_accumulator = (_accumulator > _maxAccumulation) ? _maxAccumulation : _accumulator;
 
@@ -747,6 +763,9 @@ class FlxGame extends Sprite
 
 		updateElapsed();
 
+		var fixedElapsed = FlxG.timeScale * (FlxG.fixedStepMS / 1000);
+		_state.tryFixedStepUpdate(fixedElapsed);
+
 		FlxG.signals.preUpdate.dispatch();
 
 		_state.tryHandleInput(FlxG.elapsed);
@@ -804,13 +823,6 @@ class FlxGame extends Sprite
 
 	function updateDrawElapsed():Void
 	{
-		if (FlxG.fixedTimestep)
-		{
-			var fr = (stage != null && stage.frameRate > 0) ? stage.frameRate : FlxG.drawFramerate;
-			FlxG.drawElapsed = FlxG.timeScale * (1 / fr);
-			return;
-		}
-
 		var now = getTicks();
 		if (_lastDrawTicks == 0)
 		{
@@ -903,6 +915,7 @@ class FlxGame extends Sprite
 		#end
 
 		updateDrawElapsed();
+		_state.tryDrawUpdate(FlxG.drawElapsed);
 		FlxG.signals.preDraw.dispatch();
 
 		if (FlxG.renderTile)

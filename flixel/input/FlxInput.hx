@@ -12,6 +12,8 @@ class FlxInput<T> implements IFlxInput
 	public var current:FlxInputState = RELEASED;
 	public var last:FlxInputState = RELEASED;
 
+	public var reTick:Int = -9999;
+
 	public function new(ID:T)
 	{
 		this.ID = ID;

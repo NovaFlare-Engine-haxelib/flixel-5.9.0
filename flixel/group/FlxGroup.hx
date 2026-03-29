@@ -177,6 +177,28 @@ class FlxTypedGroup<T:FlxBasic> extends FlxBasic
 		}
 	}
 
+	override public function fixedStepUpdate(elapsed:Float):Void
+	{
+		for (basic in members)
+		{
+			if (basic != null && basic.exists && basic.active)
+			{
+				basic.fixedStepUpdate(elapsed);
+			}
+		}
+	}
+
+	override public function drawUpdate(elapsed:Float):Void
+	{
+		for (basic in members)
+		{
+			if (basic != null && basic.exists && basic.active)
+			{
+				basic.drawUpdate(elapsed);
+			}
+		}
+	}
+
 	/**
 	 * Automatically goes through and calls render on everything you added.
 	 */
