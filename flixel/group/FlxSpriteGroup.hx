@@ -242,6 +242,11 @@ class FlxTypedSpriteGroup<T:FlxSprite> extends FlxSprite
 			drawDebug();
 		#end
 	}
+	
+	override public function drawUpdate(elapsed:Float):Void
+	{
+		group.drawUpdate(elapsed);
+	}
 
 	/**
 	 * Replaces all pixels with specified `Color` with `NewColor` pixels.

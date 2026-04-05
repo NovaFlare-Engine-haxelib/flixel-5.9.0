@@ -494,10 +494,73 @@ class FlxSound extends FlxBasic
 		#end
 	}
 
+	/**
+	 * One of the main setup functions for sounds, this function loads a sound from a URL.
+	 *
+	 * @param	SoundURL		A string representing the URL of the MP3 file you want to play.
+	 * @param	Looped			Whether or not this sound should loop endlessly.
+	 * @param	AutoDestroy		Whether or not this FlxSound instance should be destroyed when the sound finishes playing.
+	 * 							Default value is false, but `FlxG.sound.play()` and `FlxG.sound.stream()` will set it to true by default.
+	 * @param	OnComplete		Called when the sound finished playing
+	 * @param	OnLoad			Called when the sound finished loading.
+	 * @return	This FlxSound instance (nice for chaining stuff together, if you're into that).
+	 */
+	public function loadStreamAsync(SoundURL:String, Looped:Bool = false, AutoDestroy:Bool = false, ?OnComplete:Void->Void, ?OnLoad:Void->Void):FlxSound
+	{
+		#if hxvlc
+		_onVLC = true;
+
+		cleanup(true);
+		init(Looped, AutoDestroy, OnComplete);
+		
+		_initVlc();
+		
+		if (_vlcPlayer != null && _vlcPlayer.addTrackAsync(SoundURL, null, 1))
+		{
+			if (OnLoad != null) OnLoad();
+			_vlcPlayer.autoDestroy = AutoDestroy;
+		}
+		else 
+		{
+			FlxG.log.error("FlxStreamSound: Failed to load VLC stream (Player is null or Load failed): " + SoundURL);
+		}
+		return this;
+		#else
+		cleanup(true);
+		
+		_sound = new Sound();
+		_sound.addEventListener(Event.ID3, gotID3);
+		var loadCallback:Event->Void = null;
+		loadCallback = function(e:Event)
+		{
+			(e.target : IEventDispatcher).removeEventListener(e.type, loadCallback);
+			// Check if the sound was destroyed before calling. Weak ref doesn't guarantee GC.
+			if (_sound == e.target)
+			{
+				_length = _sound.length;
+				if (OnLoad != null)
+					OnLoad();
+			}
+		}
+		// Use a weak reference so this can be garbage collected if destroyed before loading.
+		_sound.addEventListener(Event.COMPLETE, loadCallback, false, 0, true);
+		_sound.load(new URLRequest(SoundURL));
+		
+		return init(Looped, AutoDestroy, OnComplete);
+		#end
+	}
+
 	public function addTrack(url:String, ?options:Array<String>, id:Int = 9999) {
 		#if hxvlc
 		if (!_onVLC || _vlcPlayer == null) return;
 		_vlcPlayer.addTrack(url, options, id);
+		#end
+	}
+
+	public function addTrackAsync(url:String, ?options:Array<String>, id:Int = 9999) {
+		#if hxvlc
+		if (!_onVLC || _vlcPlayer == null) return;
+		_vlcPlayer.addTrackAsync(url, options, id);
 		#end
 	}
 
