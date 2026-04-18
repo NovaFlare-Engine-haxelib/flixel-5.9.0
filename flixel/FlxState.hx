@@ -293,7 +293,7 @@ class FlxState extends FlxContainer
 	@:allow(flixel.FlxGame)
 	function tryDrawUpdate(elapsed:Float):Void
 	{
-		if (persistentDraw || subState == null)
+		if (persistentUpdate || subState == null)
 			drawUpdate(elapsed);
 
 		if (subState != null)
