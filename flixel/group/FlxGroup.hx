@@ -129,8 +129,15 @@ class FlxTypedGroup<T:FlxBasic> extends FlxBasic
 	{
 		super.destroy();
 		
-		FlxDestroyUtil.destroy(_memberAdded);
-		FlxDestroyUtil.destroy(_memberRemoved);
+		final memberAdded = _memberAdded;
+		_memberAdded = null;
+		if (memberAdded != null)
+			memberAdded.destroy();
+		
+		final memberRemoved = _memberRemoved;
+		_memberRemoved = null;
+		if (memberRemoved != null)
+			memberRemoved.destroy();
 		
 		if (members != null)
 		{
