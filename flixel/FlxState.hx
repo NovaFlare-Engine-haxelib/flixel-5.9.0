@@ -12,7 +12,7 @@ import flixel.util.typeLimit.NextState;
  */
 @:keepSub // workaround for HaxeFoundation/haxe#3749
 #if FLX_NO_UNIT_TEST
-@:autoBuild(flixel.system.macros.FlxMacroUtil.deprecateOverride("switchTo", "switchTo is deprecated, use startOutro"))
+//@:autoBuild(flixel.system.macros.FlxMacroUtil.deprecateOverride("switchTo", "switchTo is deprecated, use startOutro"))
 #end
 // show deprecation warning when `switchTo` is overriden in dereived classes
 class FlxState extends FlxContainer
@@ -235,7 +235,7 @@ class FlxState extends FlxContainer
 	 *
 	 * Useful for customizing state switches, e.g. for transition effects.
 	 */
-	@:deprecated("switchTo is deprecated, use startOutro")
+	//@:deprecated("switchTo is deprecated, use startOutro")
 	public function switchTo(nextState:FlxState):Bool
 	{
 		return true;

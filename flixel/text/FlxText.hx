@@ -51,6 +51,24 @@ class FlxText extends FlxSprite
 	public var text(default, set):String = "";
 
 	/**
+	 * 【NovaFlare】文字字形超采样倍率（默认 1.0 = 原版行为）。
+	 *
+	 * 为什么需要它：NF 的逻辑分辨率是 1280x720，全屏到 1920 时 OpenFL 会用
+	 * `Stage.__displayMatrix` 把整幅画面放大 1.5 倍输出（已实测 a=1.5）。
+	 * 字形如果只按逻辑字号光栅化，就会被线性放大 1.5 倍 → 文字发虚。
+	 *
+	 * 本字段设为 N(>1) 后：
+	 *   - 字形以 `size * N` 的精度光栅化（真正的细节变多）；
+	 *   - `frame.sourceSize` / `frameWidth` / `frameHeight` 仍保持逻辑尺寸，
+	 *     由 `FlxFrame.tileMatrix` 在绘制时把 N 倍位图缩回逻辑尺寸。
+	 * 因此 `width` / `scale` / `fieldWidth` 等对外语义**完全不变**，
+	 * 形如 `text.scale.x = 600 / text.width` 的自适应缩放代码无需改动。
+	 *
+	 * 代价：文字位图面积按 N² 增长（N=1.5 → ×2.25，N=2 → ×4）。
+	 */
+	public static var renderScale:Float = 1.0;
+
+	/**
 	 * The size of the text being displayed in pixels.
 	 */
 	public var size(get, set):Int;
@@ -580,7 +598,7 @@ class FlxText extends FlxSprite
 		{
 			autoSize = false;
 			wordWrap = true;
-			textField.width = value;
+			textField.width = value * renderScale; // 【NovaFlare】字形按倍率放大
 		}
 
 		_regen = true;
@@ -589,12 +607,12 @@ class FlxText extends FlxSprite
 
 	function get_fieldWidth():Float
 	{
-		return (textField != null) ? textField.width : 0;
+		return (textField != null) ? textField.width / renderScale : 0;
 	}
 
 	function get_fieldHeight():Float
 	{
-		return (textField != null) ? textField.height : 0;
+		return (textField != null) ? textField.height / renderScale : 0;
 	}
 
 	function set_fieldHeight(value:Float):Float
@@ -609,7 +627,7 @@ class FlxText extends FlxSprite
 		else
 		{
 			_autoHeight = false;
-			textField.height = value;
+			textField.height = value * renderScale; // 【NovaFlare】字形按倍率放大
 		}
 		_regen = true;
 		return value;
@@ -650,12 +668,13 @@ class FlxText extends FlxSprite
 
 	inline function get_size():Int
 	{
-		return Std.int(_defaultFormat.size);
+		return Std.int(_defaultFormat.size / renderScale);
 	}
 
 	function set_size(Size:Int):Int
 	{
-		_defaultFormat.size = Size;
+		// 【NovaFlare】内部按超采样倍率放大字号，对外仍是逻辑字号
+		_defaultFormat.size = Std.int(Size * renderScale);
 		updateDefaultFormat();
 		return Size;
 	}
@@ -959,15 +978,57 @@ class FlxText extends FlxSprite
 
 			_matrix.identity();
 
+			// 【NovaFlare】边框/阴影是在"位图坐标系"里绘制的，而位图已按
+			// renderScale 放大，所以边框宽度与阴影偏移必须同步放大，
+			// 否则描边会显得比原来细。用完立即恢复对外语义。
+			final savedBorderSize:Float = borderSize;
+			final savedShadowX:Float = _shadowOffset.x;
+			final savedShadowY:Float = _shadowOffset.y;
+			if (renderScale != 1.0)
+			{
+				borderSize = savedBorderSize * renderScale;
+				_shadowOffset.set(savedShadowX * renderScale, savedShadowY * renderScale);
+			}
+
 			applyBorderStyle();
 			applyBorderTransparency();
 			applyFormats(_formatAdjusted, false);
 
 			drawTextFieldTo(graphic.bitmap);
+
+			if (renderScale != 1.0)
+			{
+				borderSize = savedBorderSize;
+				_shadowOffset.set(savedShadowX, savedShadowY);
+			}
 		}
 
 		_regen = false;
 		resetFrame();
+
+		// 【NovaFlare】位图是按"逻辑尺寸 × renderScale"光栅化的，这里把逻辑尺寸
+		// 交还给 frame：FlxFrame.tileMatrix 会在绘制时把放大的位图缩回逻辑尺寸。
+		// 由于 FlxSprite.width 是 frameWidth * scale 的派生量，改完 frameWidth 后
+		// width/scale 会自动回到原语义，无需改动任何调用方代码。
+		if (renderScale != 1.0 && frame != null)
+		{
+			// 注意 VERTICAL_GUTTER 也必须跟着倍率一起缩放：字号已经被放大 N 倍，
+			// 若行距余量还按原值参与计算，除以 N 之后行距会被压掉 (N-1)/N，
+			// 表现为多行文字行距变小、整体高度少 1px。
+			// 取整统一用 round，让残余误差居中（±0.5px）而不是单向偏大。
+			final logicalW:Int = Math.round(textField.width / renderScale);
+			final logicalH:Int = Math.round((_autoHeight ? (textField.textHeight + VERTICAL_GUTTER * renderScale) : textField.height) / renderScale);
+			@:privateAccess {
+				frame.sourceSize.set(logicalW, logicalH);
+				frame.cacheFrameMatrix();
+			}
+			frameWidth = logicalW;
+			frameHeight = logicalH;
+			// width/height 是独立字段（不是 frameWidth*scale 的派生量），
+			// 必须按新的逻辑尺寸重算，否则会停留在放大后的位图尺寸上。
+			width = Math.abs(scale.x) * frameWidth;
+			height = Math.abs(scale.y) * frameHeight;
+		}
 	}
 
 	/**

@@ -705,6 +705,42 @@ class FlxSprite extends FlxObject
 	}
 
 	/**
+	 * 【NovaFlare】程序化生成位图的像素密度（默认 1.0 = 原版行为）。
+	 *
+	 * 设为 N(>1) 后，`makeGraphic()` 生成的位图按 N 倍分辨率光栅化，
+	 * 但 `frame.sourceSize` / `frameWidth` 仍保持调用方传入的逻辑尺寸，
+	 * 由 `FlxFrame.tileMatrix` 在绘制时缩回 —— 因此 `width` / `scale` /
+	 * `offset` / `origin` 的对外语义完全不变，调用方代码无需改动。
+	 *
+	 * 用途：NF 的逻辑分辨率是 1280x720，全屏到 1920 时画面被整体放大 1.5 倍，
+	 * 程序化生成的纯色块/边框/圆角会因此发虚。提高像素密度后，
+	 * 屏幕上的采样由"放大 1.5 倍"变成"缩小 0.75 倍"，边缘恢复锐利。
+	 */
+	public static var pixelDensity:Float = 1.0;
+
+	/**
+	 * 【NovaFlare】把 frame 的逻辑尺寸设为 (w, h)，而位图保持其实际分辨率。
+	 * 配合 `pixelDensity` 使用，让"高分辨率位图 + 逻辑尺寸"两者解耦。
+	 */
+	public function applyLogicalFrameSize(w:Float, h:Float):Void
+	{
+		if (frame == null || w <= 0 || h <= 0)
+			return;
+
+		@:privateAccess {
+			frame.sourceSize.set(w, h);
+			frame.cacheFrameMatrix();
+		}
+
+		frameWidth = Std.int(w);
+		frameHeight = Std.int(h);
+		_halfSize.set(0.5 * frameWidth, 0.5 * frameHeight);
+		resetSize();
+		width = Math.abs(scale.x) * frameWidth;
+		height = Math.abs(scale.y) * frameHeight;
+	}
+
+	/**
 	 * This function creates a flat colored rectangular image dynamically.
 	 *
 	 * HaxeFlixel's graphic caching system keeps track of loaded image data.
@@ -728,6 +764,23 @@ class FlxSprite extends FlxObject
 	 */
 	public function makeGraphic(width:Int, height:Int, color = FlxColor.WHITE, unique = false, ?key:String):FlxSprite
 	{
+		// 【NovaFlare】按 pixelDensity 超采样：位图放大，逻辑尺寸不变
+		final density:Float = pixelDensity;
+		if (density != 1.0 && width > 0 && height > 0)
+		{
+			final bw:Int = Math.ceil(width * density);
+			final bh:Int = Math.ceil(height * density);
+			var hiGraph:FlxGraphic = FlxG.bitmap.create(bw, bh, color, unique, key);
+			frames = hiGraph.imageFrame;
+			applyLogicalFrameSize(width, height);
+
+			#if FLX_TRACK_GRAPHICS
+			hiGraph.trackingInfo = 'makeGraphic($ID, ${color.toHexString()}, x$density)';
+			#end
+
+			return this;
+		}
+
 		var graph:FlxGraphic = FlxG.bitmap.create(width, height, color, unique, key);
 		frames = graph.imageFrame;
 		
