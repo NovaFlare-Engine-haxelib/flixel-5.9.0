@@ -1,5 +1,14 @@
 package flixel.system.debug.interaction;
 
+import openfl.geom.Point;
+#if (haxe_ver >= 4.2)
+import Std.isOfType;
+#end
+#if (haxe_ver >= 4.2)
+#else
+
+#end
+
 import openfl.display.BitmapData;
 import openfl.display.Graphics;
 import openfl.display.Sprite;
@@ -772,5 +781,48 @@ class Interaction extends Window
 			}
 		}
 		return null;
+	}
+
+	public function resetActiveTool():Void
+	{
+		if (activeTool != null)
+		{
+			// A tool is active. Enable cursor specific cursors
+			setToolsCursorVisibility(true);
+
+			activeTool.button.toggled = false;
+			activeTool.activate();
+			updateCustomCursors();
+		}
+		else
+		{
+			// No tool is active. Enable the system cursor
+			// so the user can click buttons, drag windows, etc.
+			setSystemCursorVisibility(true);
+		}
+
+		#if FLX_MOUSE
+		// Allow mouse input only if the interaction tool is visible
+		// and no tool is active.
+		FlxG.mouse.enabled = !isInUse();
+		#end
+	}
+
+	public function toDebugX(worldX:Float, camera:FlxCamera)
+	{
+		if (FlxG.renderTile)
+			return camera.canvas.localToGlobal(new Point(worldX, 0)).x;
+		else
+			@:privateAccess
+			return camera._flashBitmap.localToGlobal(new Point(worldX, 0)).x;
+	}
+
+	public function toDebugY(worldY:Float, camera:FlxCamera)
+	{
+		if (FlxG.renderTile)
+			return camera.canvas.localToGlobal(new Point(0, worldY)).y;
+		else
+			@:privateAccess
+			return camera._flashBitmap.localToGlobal(new Point(0, worldY)).y;
 	}
 }

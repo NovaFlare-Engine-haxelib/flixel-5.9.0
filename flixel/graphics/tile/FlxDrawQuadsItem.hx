@@ -13,10 +13,10 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 {
 	static inline var VERTICES_PER_QUAD = #if (openfl >= "8.5.0") 4 #else 6 #end;
 
-	public var shader:FlxShader;
+	
 
-	var rects:Vector<Float>;
-	var transforms:Vector<Float>;
+	public var rects:Vector<Float>;
+	public var transforms:Vector<Float>;
 	var alphas:Array<Float>;
 	var colorMultipliers:Array<Float>;
 	var colorOffsets:Array<Float>;
@@ -123,6 +123,7 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		shader.bitmap.input = graphics.bitmap;
 		shader.bitmap.filter = (#if CODENAME_ENGINE_COMPAT FlxG.enableAntialiasing && #end (camera.antialiasing || antialiasing)) ? LINEAR : NEAREST;
 		shader.alpha.value = alphas;
+ shader.bitmap.wrap=wrapMode;
 
 		if (colored || hasColorOffsets)
 		{
@@ -136,7 +137,8 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		#if (openfl > "8.7.0")
 		camera.canvas.graphics.overrideBlendMode(blend);
 		#end
-		camera.canvas.graphics.beginShaderFill(shader);
+		camera.canvas.graphics.overrideDepthTest(depthCompareMode!=ALWAYS,depthCompareMode);
+ camera.canvas.graphics.beginShaderFill(shader);
 		camera.canvas.graphics.drawQuads(rects, null, transforms);
 		super.render(camera);
 	}
@@ -148,4 +150,16 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		parameter.value[0] = value;
 	}
 	#end
+
+public function addColoredQuad(frame:FlxFrame,matrix:FlxMatrix,?transforms:Array<ColorTransform>):Void {
+  var start=alphas.length; addQuad(frame,matrix,transforms!=null&&transforms.length>0?transforms[0]:null);
+  if(transforms==null || transforms.length==0) return;
+  for(i in 0...VERTICES_PER_QUAD) {
+   var c=transforms[i%transforms.length]; if(c==null) c=FlxDrawBaseItem.colorIdentity; alphas[start+i]=c.alphaMultiplier;
+   if(colored||hasColorOffsets) {var k=(start+i)*4;
+    colorMultipliers[k]=c.redMultiplier; colorMultipliers[k+1]=c.greenMultiplier; colorMultipliers[k+2]=c.blueMultiplier; colorMultipliers[k+3]=1;
+    colorOffsets[k]=c.redOffset; colorOffsets[k+1]=c.greenOffset; colorOffsets[k+2]=c.blueOffset; colorOffsets[k+3]=c.alphaOffset;
+   }
+  }
+ }
 }

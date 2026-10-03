@@ -1341,7 +1341,7 @@ class FlxCamera extends FlxBasic
 		// follow the target, if there is one
 		if (target != null #if CODENAME_ENGINE_COMPAT && followEnabled && !paused #end)
 		{
-			updateFollow();
+			if(followActive) updateFollow();
 			#if CODENAME_ENGINE_COMPAT
 			updateLerp(elapsed);
 			#end
@@ -1352,8 +1352,8 @@ class FlxCamera extends FlxBasic
 		if (!paused)
 		{
 		#end
-		updateFlash(elapsed);
-		updateFade(elapsed);
+		if(fxActive) updateFlash(elapsed);
+		if(fxActive) updateFade(elapsed);
 		#if CODENAME_ENGINE_COMPAT
 		}
 		#end
@@ -1396,7 +1396,7 @@ class FlxCamera extends FlxBasic
 		#if CODENAME_ENGINE_COMPAT
 		if (!paused)
 		#end
-			updateShake(elapsed);
+			if(fxActive) updateShake(elapsed);
 		updateFlashSpritePosition();
 	}
 
@@ -1794,7 +1794,7 @@ class FlxCamera extends FlxBasic
 	 */
 	public function snapToTarget():Void
 	{
-		updateFollow();
+		if(followActive) updateFollow();
 		scroll.copyFrom(_scrollTarget);
 	}
 
@@ -2580,6 +2580,14 @@ class FlxCamera extends FlxBasic
 	@:noCompletion
 	override function set_cameras(value:Array<FlxCamera>):Array<FlxCamera> throw "don't reference camera.cameras";
 	
+
+public var scrollAngle(default,set):Float=0;
+ function set_scrollAngle(v:Float):Float { canvas.rotation=v; return scrollAngle=v; }
+ public var shakeMatrixFix:Bool=false;
+ public var fxActive:Bool=true;
+ public var followActive:Bool=true;
+ public static inline function mod(a:Float,b:Float):Float return (a%b+b)%b;
+
 }
 
 enum FlxCameraFollowStyle

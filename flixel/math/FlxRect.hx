@@ -559,4 +559,28 @@ class FlxRect implements IFlxPooled
 	{
 		return _pool;
 	}
+
+	public inline function setBounds(x1:Float, y1:Float, x2:Float, y2:Float):FlxRect
+	{
+		return set(x1, y1, x2 - x1, y2 - y1);
+	}
+
+	public inline function setAbs(x:Float, y:Float, width:Float, height:Float)
+	{
+		this.x = width > 0 ? x : x + width;
+		this.y = height > 0 ? y : y + height;
+		this.width = width > 0 ? width : -width;
+		this.height = height > 0 ? height : -height;
+		return this;
+	}
+
+	public inline function contains(rect:FlxRect):Bool
+	{
+		final result = rect.left >= left
+			&& rect.right <= right
+			&& rect.top >= top
+			&& rect.bottom <= bottom;
+		rect.putWeak();
+		return result;
+	}
 }

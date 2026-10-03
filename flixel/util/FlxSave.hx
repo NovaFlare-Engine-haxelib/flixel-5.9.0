@@ -402,6 +402,11 @@ class FlxSave implements IFlxDestroyable
 	{
 		return data == null || Reflect.fields(data).length == 0;
 	}
+
+	public static function exists(name, ?path:String):Bool
+	{
+		return FlxSharedObject.exists(name, path);
+	}
 }
 
 /**

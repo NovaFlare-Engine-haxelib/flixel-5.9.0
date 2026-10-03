@@ -341,7 +341,7 @@ import openfl.geom.Point;
 	 * @param   p  Any Point.
 	 * @return  A reference to the altered point parameter.
 	 */
-	public overload inline extern function add(p:Point):FlxPoint return this.add(p.x, p.y);
+	public overload inline extern function add(p:Point):FlxPoint return this.set(this.x+p.x,this.y+p.y);
 	#else
 	public inline function add(x:Float = 0, y:Float = 0):FlxPoint
 	{
@@ -799,7 +799,7 @@ import openfl.geom.Point;
 	 * @param   p  point to multiply
 	 * @return  dot product of two points
 	 */
-	inline function dotProductWeak(p:FlxPoint):Float
+	inline public function dotProductWeak(p:FlxPoint):Float
 	{
 		return x * p.x + y * p.y;
 	}
@@ -848,7 +848,7 @@ import openfl.geom.Point;
 	 * @param   p  point to multiply
 	 * @return  the length of cross product of two points
 	 */
-	inline function crossProductLengthWeak(p:FlxPoint):Float
+	inline public function crossProductLengthWeak(p:FlxPoint):Float
 	{
 		return x * p.y - y * p.x;
 	}
@@ -873,7 +873,7 @@ import openfl.geom.Point;
 	 * @param   p  point to check
 	 * @return  true - if they are parallel
 	 */
-	inline function isParallelWeak(p:FlxPoint):Bool
+	inline public function isParallelWeak(p:FlxPoint):Bool
 	{
 		return Math.abs(crossProductLengthWeak(p)) < EPSILON_SQUARED;
 	}
@@ -1077,7 +1077,7 @@ import openfl.geom.Point;
 	 * @param   proj  optional argument - result point
 	 * @return  projection of the point
 	 */
-	inline function projectToNormalizedWeak(p:FlxPoint, ?proj:FlxPoint):FlxPoint
+	inline public function projectToNormalizedWeak(p:FlxPoint, ?proj:FlxPoint):FlxPoint
 	{
 		var dp:Float = dotProductWeak(p);
 
@@ -1103,7 +1103,7 @@ import openfl.geom.Point;
 	 * Dot product of left the normal point and point p.
 	 * Meant for internal use, does not call putWeak.
 	 */
-	inline function perpProductWeak(p:FlxPoint):Float
+	inline public function perpProductWeak(p:FlxPoint):Float
 	{
 		return lx * p.x + ly * p.y;
 	}
@@ -1134,7 +1134,7 @@ import openfl.geom.Point;
 	 * @param   p  the second point
 	 * @return  the ratio between the perpProducts of this point and p point
 	 */
-	inline function ratioWeak(a:FlxPoint, b:FlxPoint, p:FlxPoint):Float
+	inline public function ratioWeak(a:FlxPoint, b:FlxPoint, p:FlxPoint):Float
 	{
 		if (isParallelWeak(p))
 			return Math.NaN;
@@ -1443,6 +1443,24 @@ import openfl.geom.Point;
 	{
 		return -x;
 	}
+
+	public static inline var EPSILON_LENGTH:Float = EPSILON * FlxMath.SQUARE_ROOT_OF_TWO;
+
+	public inline function setXY(n:Float):FlxPoint return this.setXY(n);
+
+	public inline function addFromFlash(p:Point):FlxPoint return this.set(this.x+p.x,this.y+p.y);
+
+	public inline function subtractToFlash(p:Point):Point return this.subtractToFlash(p);
+
+	public inline function scaleFromFlash(p:Point):FlxPoint return this.set(this.x*p.x,this.y*p.y);
+
+	public inline function scaleToFlash(p:Point):Point return this.scaleToFlash(p);
+
+	public inline function dotProductXY(x:Float, y:Float):Float return this.dotProductXY(x, y);
+
+	public inline function perpProductXY(x:Float, y:Float):Float return this.perpProductXY(x, y);
+
+public inline function distanceSquaredTo(x:Float,y:Float):Float return this.distanceSquaredTo(x,y);
 }
 
 /**
@@ -1803,6 +1821,14 @@ class FlxBasePoint implements IFlxPooled
 
 	function get_ly():Float return asFlxPoint().ly;
 	#end
+
+public inline function setXY(n:Float):FlxPoint return set(n,n);
+ public inline function subtractToFlash(p:Point):Point {p.x-=x;p.y-=y;return p;}
+ public inline function scaleToFlash(p:Point):Point {p.x*=x;p.y*=y;return p;}
+ public inline function dotProductXY(x:Float,y:Float):Float return this.x*x+this.y*y;
+ public inline function perpProductXY(x:Float,y:Float):Float return this.x*y-this.y*x;
+ public inline function distanceSquaredTo(x:Float,y:Float):Float {var dx=this.x-x,dy=this.y-y;return dx*dx+dy*dy;}
+
 }
 
 

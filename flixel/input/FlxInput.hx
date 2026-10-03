@@ -81,6 +81,20 @@ class FlxInput<T> implements IFlxInput
 	{
 		return current == JUST_PRESSED;
 	}
+
+	public function update():Void
+	{
+		if (last == JUST_RELEASED && current == JUST_RELEASED)
+		{
+			current = RELEASED;
+		}
+		else if (last == JUST_PRESSED && current == JUST_PRESSED)
+		{
+			current = PRESSED;
+		}
+
+		last = current;
+	}
 }
 
 enum abstract FlxInputState(Int) from Int

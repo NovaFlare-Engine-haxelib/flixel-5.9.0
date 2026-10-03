@@ -192,4 +192,29 @@ class DebuggerFrontEnd
 
 		return visible;
 	}
+
+#if FLX_DEBUG
+	public var tools:DebugToolsFrontEnd=new DebugToolsFrontEnd();
+#end
+
+#if FLX_DEBUG
+	public var windows:DebugWindowsFrontEnd=new DebugWindowsFrontEnd();
+#end
 }
+
+#if FLX_DEBUG
+@:allow(flixel.system.frontEnds.DebuggerFrontEnd)
+class DebugToolsFrontEnd {
+ public var activeTool(get,never):flixel.system.debug.interaction.tools.Tool;
+ function get_activeTool():flixel.system.debug.interaction.tools.Tool return FlxG.game.debugger.interaction.activeTool;
+ public function new() {}
+ public function add(tool:flixel.system.debug.interaction.tools.Tool):Void {FlxG.game.debugger.interaction.addTool(tool);}
+ public function remove(tool:flixel.system.debug.interaction.tools.Tool):Void {FlxG.game.debugger.interaction.removeTool(tool);}
+}
+@:allow(flixel.system.frontEnds.DebuggerFrontEnd)
+class DebugWindowsFrontEnd {
+ public function new() {}
+ public function add(window:flixel.system.debug.Window,?button:Dynamic):Void {FlxG.game.debugger.addWindow(window);}
+ public function remove(window:flixel.system.debug.Window):Void {FlxG.game.debugger.removeWindow(window);}
+}
+#end

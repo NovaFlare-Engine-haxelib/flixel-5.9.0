@@ -35,7 +35,7 @@ class VirtualInputData extends #if (lime_legacy || nme) ByteArray #else ByteArra
 
 typedef FlxTexturePackerJsonAsset = FlxJsonAsset<TexturePackerAtlas>;
 typedef FlxAsepriteJsonAsset = FlxJsonAsset<AseAtlas>;
-typedef FlxSoundAsset = OneOfThree<String, Sound, Class<Sound>>;
+typedef FlxSoundAsset = flixel.util.typeLimit.OneOfSix<String, Sound, Class<Sound>, lime.media.AudioBuffer, flixel.sound.FlxSoundData, haxe.io.Bytes>;
 typedef FlxGraphicAsset = OneOfThree<FlxGraphic, BitmapData, String>;
 typedef FlxGraphicSource = OneOfThree<BitmapData, Class<Dynamic>, String>;
 typedef FlxTilemapGraphicAsset = OneOfFour<FlxFramesCollection, FlxGraphic, BitmapData, String>;

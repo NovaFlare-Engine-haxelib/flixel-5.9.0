@@ -133,4 +133,12 @@ class WatchFrontEnd
 		remove(FlxG, "mouse");
 		#end
 	}
+
+#if FLX_DEBUG
+	public var window(get, never):flixel.system.debug.watch.Watch;
+#end
+
+#if FLX_DEBUG
+	inline function get_window() return FlxG.game.debugger.watch;
+#end
 }

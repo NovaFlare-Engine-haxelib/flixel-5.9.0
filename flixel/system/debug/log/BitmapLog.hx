@@ -386,6 +386,48 @@ class BitmapLog extends Window
 	{
 		return _entries[_curIndex].bitmap;
 	}
+
+#if FLX_DEBUG
+	public function has(bitmap:BitmapData)
+	{
+		for (i => entry in entries)
+		{
+			if (entry.bitmap == bitmap)
+				return true;
+		}
+		return false;
+	}
+#end
+
+#if FLX_DEBUG
+	public function remove(bitmap:BitmapData)
+	{
+		final index = indexOf(bitmap);
+		if (index != -1)
+			clearAt(index);
+	}
+#end
+
+#if FLX_DEBUG
+	var entries(get,never):Array<BitmapLogEntry>;
+ function get_entries():Array<BitmapLogEntry> return _entries;
+#end
+
+#if FLX_DEBUG
+	var index:Int = -1;
+#end
+
+#if FLX_DEBUG
+	function indexOf(bitmap:BitmapData)
+	{
+		for (i => entry in entries)
+		{
+			if (entry.bitmap == bitmap)
+				return i;
+		}
+		return -1;
+	}
+#end
 }
 
 typedef BitmapLogEntry =

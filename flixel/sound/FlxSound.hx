@@ -1,4 +1,4 @@
-﻿package flixel.sound;
+package flixel.sound;
 
 import flixel.FlxBasic;
 import flixel.FlxG;
@@ -31,6 +31,7 @@ import hxvlc.util.Handle;
 /**
  * This is the universal flixel sound object, used for streaming, music, and sound effects.
  */
+@:autoBuild(flixel.system.macros.SoundCompat.build())
 class FlxSound extends FlxBasic
 {
 	/**
@@ -323,8 +324,9 @@ class FlxSound extends FlxBasic
 	/**
 	 * An internal function for clearing all the variables used by sounds.
 	 */
-	#if CODENAME_ENGINE_COMPAT public #end function reset():Void
+	#if CODENAME_ENGINE_COMPAT public #end function reset(force:Bool=false):Void
 	{
+ loopCount=0; __compatEffects.resize(0);
 		destroy();
 		
 		x = 0;
@@ -356,6 +358,7 @@ class FlxSound extends FlxBasic
 	
 	override public function destroy():Void
 	{
+ 
 		// Prevents double destroy
 		if (group != null)
 			group.remove(this);
@@ -380,6 +383,7 @@ class FlxSound extends FlxBasic
 			_sound = null;
 		}
 
+ if(data!=null) {data.decrementUseCount();data=null;}
 		#if hxvlc
 		_onVLC = false;
 		if (_vlcPlayer != null)
@@ -521,7 +525,13 @@ class FlxSound extends FlxBasic
 		}
 		#end
 		
-		if ((EmbeddedSound is Sound))
+		if ((EmbeddedSound is FlxSoundData)) {
+   data=cast EmbeddedSound; data.incrementUseCount(); _sound=Sound.fromAudioBuffer(data.buffer);
+  } else if ((EmbeddedSound is lime.media.AudioBuffer)) {
+   data=FlxSoundData.fromAudioBuffer(cast EmbeddedSound); data.incrementUseCount(); _sound=Sound.fromAudioBuffer(data.buffer);
+  } else if ((EmbeddedSound is haxe.io.Bytes)) {
+   data=FlxSoundData.fromByteArray(cast EmbeddedSound); if(data!=null) {data.incrementUseCount();_sound=Sound.fromAudioBuffer(data.buffer);}
+  } else if ((EmbeddedSound is Sound))
 		{
 			_sound = EmbeddedSound;
 		}
@@ -958,6 +968,7 @@ class FlxSound extends FlxBasic
 		_time = StartTime;
 		_paused = false;
 		_channel = _sound.play(_time, 0, _transform);
+ var compatSource=__compatAudioSource(); if(compatSource!=null) for(effect in __compatEffects) compatSource.addEffect(effect);
 		if (_channel != null)
 		{
 			#if FLX_PITCH
@@ -985,8 +996,9 @@ class FlxSound extends FlxBasic
 		if (onComplete != null)
 			onComplete();
 			
-		if (looped)
+		if (looped && (loopUntil < 0 || loopCount < loopUntil))
 		{
+ loopCount++;
 			cleanup(false);
 			play(false, loopTime, endTime);
 		}
@@ -1272,4 +1284,51 @@ class FlxSound extends FlxBasic
 			LabelValuePair.weak("volume", volume)
 		]);
 	}
+
+public static var defaultTimeScaledPitch:Bool = false;
+ public static function playSounds(sounds:Array<FlxSound>):Void { for(sound in sounds) if(sound!=null) sound.play(); }
+ public static function pauseSounds(sounds:Array<FlxSound>):Void { for(sound in sounds) if(sound!=null) sound.pause(); }
+ public static function stopSounds(sounds:Array<FlxSound>):Void { for(sound in sounds) if(sound!=null) sound.stop(); }
+ public var paused(get,never):Bool;
+ function get_paused():Bool return _paused;
+ public var completed(get,never):Bool;
+ function get_completed():Bool return !playing && !_paused && _time >= _length && _length>0;
+ public var proximityEnabled(default,set):Bool=true;
+ function set_proximityEnabled(v:Bool):Bool return proximityEnabled=v;
+ public var timeScaledPitch(get,set):Bool;
+ function get_timeScaledPitch():Bool return #if CODENAME_ENGINE_COMPAT timeScaleBased #else false #end;
+ function set_timeScaledPitch(v:Bool):Bool { #if CODENAME_ENGINE_COMPAT timeScaleBased=v; #end return v; }
+ public var loopCount(default,null):Int=0;
+ public var loopUntil(default,set):Int=-1;
+ function set_loopUntil(v:Int):Int {looped=v!=0; return loopUntil=v;}
+ public var data(default,null):FlxSoundData;
+ public var latency(get,never):Float;
+ function get_latency():Float { var s=__compatAudioSource(); return s!=null?s.latency:0; }
+ public var amplitudes(get,never):Array<Float>;
+ function get_amplitudes():Array<Float> return [amplitudeLeft,amplitudeRight];
+ private function __compatAudioSource():lime.media.AudioSource { @:privateAccess return _channel!=null?_channel.__audioSource:null; }
+ public function unload():FlxSound { reset(); return this; }
+ public function loadStreamed(path:String,?looped:Bool,?loopTime:Float,?endTime:Float,autoDestroy=false,?onComplete:Void->Void):FlxSound {
+  var d=FlxSoundData.fromAssetKey(path,true);
+  if(d!=null) loadEmbedded(d,looped==true,autoDestroy,onComplete);
+  if(loopTime!=null) this.loopTime=loopTime; if(endTime!=null) this.endTime=endTime;
+  return this;
+ }
+ public function loadFromURL(url:String,?looped:Bool,?loopTime:Float,?endTime:Float,autoDestroy=false,?onComplete:Void->Void,?onLoad:Void->Void):FlxSound {
+  loadStream(url,looped==true,autoDestroy,onComplete,onLoad);
+  if(loopTime!=null) this.loopTime=loopTime; if(endTime!=null) this.endTime=endTime; return this;
+ }
+ public function prepare(startTime=0.0,?endTime:Float,?volume:Float,?pitch:Float,?pan:Float):FlxSound {
+  time=startTime; if(endTime!=null) this.endTime=endTime; if(volume!=null) this.volume=volume;
+  #if FLX_PITCH if(pitch!=null) this.pitch=pitch; #end if(pan!=null) this.pan=pan;
+  var s=__compatAudioSource(); if(s!=null) s.prepare(startTime); return this;
+ }
+ private var __compatEffects:Array<lime.media.AudioEffect>=[];
+ public function addEffect(effect:lime.media.AudioEffect):Void { if(effect==null || __compatEffects.indexOf(effect)>=0) return; __compatEffects.push(effect); var s=__compatAudioSource(); if(s!=null) s.addEffect(effect); }
+ public function removeEffect(effect:lime.media.AudioEffect):Void { __compatEffects.remove(effect); var s=__compatAudioSource(); if(s!=null) s.removeEffect(effect); }
+ public function clearEffects():Void { __compatEffects.resize(0); var s=__compatAudioSource(); if(s!=null) s.clearEffects(); }
+ public function getEffectAt(index:Int):lime.media.AudioEffect return index>=0&&index<__compatEffects.length?__compatEffects[index]:null;
+ public function getEffectIndex(effect:lime.media.AudioEffect):Int return __compatEffects.indexOf(effect);
+ public function getActualPan():Float return pan;
+
 }

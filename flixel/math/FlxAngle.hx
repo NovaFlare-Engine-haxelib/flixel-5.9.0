@@ -397,6 +397,19 @@ class FlxAngle
 		return Math.PI / 180;
 	}
 	#end
+
+#if !macro
+	public static function angleBetweenPoints(PointA:FlxPoint, PointB:FlxPoint, AsDegrees:Bool = false):Float
+	{
+		var dx:Float = PointB.x - PointA.x;
+		var dy:Float = PointB.y - PointA.y;
+
+		PointA.putWeak();
+		PointB.putWeak();
+
+		return angleFromOrigin(dx, dy, AsDegrees);
+	}
+#end
 }
 
 typedef FlxSinCos =

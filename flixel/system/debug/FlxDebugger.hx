@@ -555,6 +555,19 @@ class FlxDebugger extends openfl.display.Sprite
 		FlxG.openURL(url);
 	}
 	#end
+
+#if FLX_DEBUG
+	public static var defaultScale:Int
+	#if FLX_DEBUGGER_SCALE
+	= Std.parseInt('${haxe.macro.Compiler.getDefine("FLX_DEBUGGER_SCALE")}');
+	#else
+	= 1;
+	#end
+#end
+
+#if FLX_DEBUG
+	public var scale:Int;
+#end
 }
 
 enum FlxDebuggerLayout

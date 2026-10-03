@@ -145,6 +145,11 @@ class FlxVirtualPad extends FlxSpriteGroup
 
 		return button;
 	}
+
+public function getButton(id:FlxVirtualInputID):FlxButton return switch(id) {
+ case A:buttonA; case B:buttonB; case C:buttonC; case X:buttonX; case Y:buttonY;
+ case UP:buttonUp;case DOWN:buttonDown;case LEFT:buttonLeft;case RIGHT:buttonRight;case STICK:null;
+ };
 }
 
 enum FlxDPadMode
@@ -164,3 +169,5 @@ enum FlxActionMode
 	A_B_C;
 	A_B_X_Y;
 }
+
+enum FlxVirtualInputID { UP; DOWN; LEFT; RIGHT; A; B; C; X; Y; STICK; }

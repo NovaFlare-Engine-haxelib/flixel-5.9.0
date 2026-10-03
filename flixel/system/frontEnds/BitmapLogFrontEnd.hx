@@ -52,4 +52,12 @@ class BitmapLogFrontEnd
 
 	@:allow(flixel.FlxG)
 	function new() {}
+
+#if FLX_DEBUG
+	public var window(get, never):flixel.system.debug.log.BitmapLog;
+#end
+
+#if FLX_DEBUG
+	inline function get_window() return FlxG.game.debugger.bitmapLog;
+#end
 }

@@ -884,6 +884,13 @@ abstract FlxColor(Int) from Int from UInt to Int to UInt
 	{
 		return Value > 0xff ? 0xff : Value < 0 ? 0 : Value;
 	}
+
+	public var luminance(get, never):Float;
+
+	inline function get_luminance():Float
+	{
+		return (redFloat * 299 + greenFloat * 587 + blueFloat * 114) / 1000;
+	}
 }
 
 typedef Harmony =

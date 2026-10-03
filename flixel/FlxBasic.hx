@@ -1,5 +1,8 @@
 package flixel;
 
+import flixel.util.FlxDestroyUtil.IFlxDestroyable;
+
+
 import flixel.group.FlxContainer;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxStringUtil;
@@ -255,6 +258,15 @@ class FlxBasic implements IFlxDestroyable
 	{
 		return this.container;
 	}
+
+	public function getDefaultCamera():FlxCamera
+	{
+		final cameras = getCameras();
+		// should never be null, unless people do something stupid, but just in case
+		return cameras == null || cameras.length == 0 ? FlxG.camera : cameras[0];
+	}
+
+	public var zIndex:Int = 0;
 }
 
 /**

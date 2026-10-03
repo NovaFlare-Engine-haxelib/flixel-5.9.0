@@ -985,6 +985,8 @@ class FlxTween implements IFlxDestroyable
 
 		return active;
 	}
+
+	public var framerate:Float;
 }
 
 typedef TweenCallback = FlxTween->Void;

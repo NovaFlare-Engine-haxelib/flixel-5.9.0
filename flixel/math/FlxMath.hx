@@ -612,4 +612,15 @@ class FlxMath
 	{
 		return (n > 0) ? n : -n;
 	}
+
+	public static function getElapsedLerp(lerp:Float, elapsed:Float):Float
+	{
+		return 1.0 - Math.pow(1.0 - lerp, elapsed * 60);
+	}
+
+	public static inline function mod(a:Float, b:Float):Float
+	{
+		b = Math.abs(b);
+		return a - b * Math.floor(a / b);
+	}
 }

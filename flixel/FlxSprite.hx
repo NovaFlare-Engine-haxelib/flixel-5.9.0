@@ -1,5 +1,8 @@
 package flixel;
 
+
+import openfl.display3D.Context3DWrapMode;
+
 import flixel.FlxBasic.IFlxBasic;
 import flixel.animation.FlxAnimationController;
 import flixel.graphics.FlxGraphic;
@@ -1967,6 +1970,19 @@ class FlxSprite extends FlxObject
 			return doFlipY != animation.curAnim.flipY;
 		}
 		return doFlipY;
+	}
+
+    public var wrapMode:Context3DWrapMode;
+
+	@:haxe.warning("-WDeprecated")
+	public function hasColorTransform()
+	{
+		return useColorTransform || hasColorTransformRaw();
+	}
+
+	function hasColorTransformRaw()
+	{
+		return alpha != 1 || color.rgb != 0xffffff || colorTransform.hasRGBAOffsets();
 	}
 }
 

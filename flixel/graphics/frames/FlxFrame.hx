@@ -740,6 +740,101 @@ class FlxFrame implements IFlxDestroyable
 
 		return frame = value;
 	}
+
+	public function overlaps(rect:FlxRect)
+	{
+		rect.x += frame.x - offset.x;
+		rect.y += frame.y - offset.y;
+		final result = rect.overlaps(frame);
+		rect.x -= frame.x - offset.x;
+		rect.y -= frame.y - offset.y;
+		return result;
+	}
+
+	public function contains(rect:FlxRect)
+	{
+		rect.x += frame.x - offset.x;
+		rect.y += frame.y - offset.y;
+		final result = frame.contains(rect);
+		rect.x -= frame.x - offset.x;
+		rect.y -= frame.y - offset.y;
+		return result;
+	}
+
+	public function isContained(rect:FlxRect)
+	{
+		rect.x += frame.x - offset.x;
+		rect.y += frame.y - offset.y;
+		final result = rect.contains(frame);
+		rect.x -= frame.x - offset.x;
+		rect.y -= frame.y - offset.y;
+		return result;
+	}
+
+	public function clip(rect:FlxRect)
+	{
+		// no need to make all calculations if original frame is empty...
+		if (type == FlxFrameType.EMPTY)
+			return this;
+		
+		final clippedRect = FlxRect.get(0, 0, frame.width, frame.height);
+		if (angle != FlxFrameAngle.ANGLE_0)
+		{
+			clippedRect.width = frame.height;
+			clippedRect.height = frame.width;
+		}
+		
+		rect.offset(-offset.x, -offset.y);
+		final frameRect:FlxRect = clippedRect.intersection(rect);
+		rect.offset(offset.x, offset.y);
+		clippedRect.put();
+		
+		if (frameRect.isEmpty)
+		{
+			type = FlxFrameType.EMPTY;
+			frame.set(0, 0, 0, 0);
+			offset.set(0, 0);
+		}
+		else
+		{
+			type = FlxFrameType.REGULAR;
+			offset.add(frameRect.x, frameRect.y);
+			
+			if (angle != FlxFrameAngle.ANGLE_0)
+			{
+				final p1 = FlxPoint.weak(frameRect.x, frameRect.y);
+				final p2 = FlxPoint.weak(frameRect.right, frameRect.bottom);
+				
+				_matrix.identity();
+				
+				if (angle == FlxFrameAngle.ANGLE_NEG_90)
+				{
+					_matrix.rotateByPositive90();
+					_matrix.translate(frame.width, 0);
+				}
+				else if (angle == FlxFrameAngle.ANGLE_90)
+				{
+					_matrix.rotateByNegative90();
+					_matrix.translate(0, frame.height);
+				}
+				
+				p1.transform(_matrix);
+				p2.transform(_matrix);
+				frameRect.fromTwoPoints(p1, p2);
+			}
+			
+			frameRect.offset(frame.x, frame.y);
+			frame.copyFrom(frameRect);
+			cacheFrameMatrix();
+		}
+		
+		updateUV();
+		
+		frameRect.put();
+		return this;
+	}
+
+function updateUV():Void { if(frame!=null) uv.set(frame.x/parent.width,frame.y/parent.height,frame.right/parent.width,frame.bottom/parent.height); }
 }
 
 /**

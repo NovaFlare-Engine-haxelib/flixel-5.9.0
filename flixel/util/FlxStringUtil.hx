@@ -679,6 +679,21 @@ class FlxStringUtil
 		return words.join(" ");
 		
 	}
+
+	public static function capitalizeFirstLetters(str:String):String
+	{
+		// TODO: Unit test
+		return whitespace.map(str, (r)->r.matched(0).toUpperCase());
+	}
+
+	public static function isRomanNumeral(str:String):Bool
+	{
+		return roman.match(str);
+	}
+
+	static final whitespace = ~/(?<=\r|\s|^)([a-z])/g;
+
+	static final roman = ~/^(?=[MDCLXVI])M*(C[MD]|D?C*)(X[CL]|L?X*)(I[XV]|V?I*)$/i;
 }
 
 class LabelValuePair implements IFlxDestroyable

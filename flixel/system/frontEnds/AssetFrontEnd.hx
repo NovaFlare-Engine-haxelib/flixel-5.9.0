@@ -123,7 +123,7 @@ class AssetFrontEnd
 			// Check cache
 			case IMAGE if (canUseCache && Assets.cache.hasBitmapData(id)):
 				Assets.cache.getBitmapData(id);
-			case SOUND if (canUseCache && Assets.cache.hasSound(id)):
+			case SOUND, MUSIC if (canUseCache && Assets.cache.hasSound(id)):
 				Assets.cache.getSound(id);
 			case FONT if (canUseCache && Assets.cache.hasFont(id)):
 				Assets.cache.getFont(id);
@@ -134,7 +134,7 @@ class AssetFrontEnd
 				if (canUseCache)
 					Assets.cache.setBitmapData(id, bitmap);
 				bitmap;
-			case SOUND:
+			case SOUND, MUSIC:
 				final sound = Sound.fromFile(getPath(id));
 				if (canUseCache)
 					Assets.cache.setSound(id, sound);
@@ -159,6 +159,7 @@ class AssetFrontEnd
 			case BINARY: Assets.getBytes(id);
 			case IMAGE: Assets.getBitmapData(id, useCache);
 			case SOUND: Assets.getSound(id, useCache);
+ case MUSIC: Assets.getMusic(id,useCache);
 			case FONT: Assets.getFont(id, useCache);
 		}
 	}
@@ -224,6 +225,7 @@ class AssetFrontEnd
 			case BINARY: Assets.loadBytes(id);
 			case IMAGE: Assets.loadBitmapData(id, useCache);
 			case SOUND: Assets.loadSound(id, useCache);
+ case MUSIC: Assets.loadMusic(id,useCache);
 			case FONT: Assets.loadFont(id, useCache);
 		}
 	}
@@ -651,6 +653,62 @@ class AssetFrontEnd
 		
 		return promise.future;
 	}
+
+	public dynamic function streamSoundUnsafe(id:String, useCache = true):Sound
+	{
+		var path = new Path(id), s:String;
+		for (ext in soundExtensions)
+		{
+			path.ext = ext;
+			s = path.toString();
+			if (exists(s, SOUND)) return cast getAssetUnsafe(s, MUSIC, useCache);
+		}
+		return cast getAssetUnsafe(addSoundExtIf(id), MUSIC, useCache);
+	}
+
+	public function streamSound(id:String, useCache = true, ?logStyle:LogStyle):Sound
+	{
+		var path = new Path(id), s:String;
+		for (ext in soundExtensions)
+		{
+			path.ext = ext;
+			s = path.toString();
+			if (exists(s, SOUND)) return cast getAsset(s, MUSIC, useCache, logStyle);
+		}
+		return cast getAsset(addSoundExtIf(id), MUSIC, useCache, logStyle);
+	}
+
+	public function streamSoundAddExt(id:String, ?logStyle:LogStyle):Sound
+	{
+		return streamSound(addSoundExt(id));
+	}
+
+	public function canStreamSound(id:String):Bool
+	{
+		#if (lime_funkin && lime_native)
+		final decoder = lime.media.AudioDecoder.fromFile(Assets.getPath(addSoundExtIf(id)));
+		if (decoder != null)
+		{
+			var seekable = decoder.seekable();
+			decoder.dispose();
+
+			return seekable;
+		}
+		#elseif lime_vorbis
+		// Check if file is really OGG/Vorbis
+		final vorbis = lime.media.vorbis.VorbisFile.fromFile(Assets.getPath(addSoundExtIf(id)));
+		if (vorbis != null)
+		{
+			vorbis.clear();
+
+			return true;
+		}
+		#end
+
+		return false;
+	}
+
+	public final soundExtensions:Array<String> = ["mp3", "ogg", "wav", "flac", "opus"];
 }
 
 /**
@@ -671,6 +729,7 @@ enum abstract FlxAssetType(String)
 	
 	/** Audio assets, such as *.ogg or *.wav files */
 	var SOUND = "sound";
+ var MUSIC="music";
 	
 	/** Text assets */
 	var TEXT = "text";
@@ -683,6 +742,7 @@ enum abstract FlxAssetType(String)
 			case FONT: AssetType.FONT;
 			case IMAGE: AssetType.IMAGE;
 			case SOUND: AssetType.SOUND;
+ case MUSIC: AssetType.MUSIC;
 			case TEXT: AssetType.TEXT;
 		}
 	}

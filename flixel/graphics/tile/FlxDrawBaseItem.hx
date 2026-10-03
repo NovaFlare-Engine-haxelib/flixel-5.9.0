@@ -42,6 +42,7 @@ class FlxDrawBaseItem<T>
 
 	public function reset():Void
 	{
+ shader=null;wrapMode=CLAMP;depthCompareMode=ALWAYS;
 		graphics = null;
 		antialiasing = false;
 		nextTyped = null;
@@ -72,6 +73,11 @@ class FlxDrawBaseItem<T>
 	{
 		return 0;
 	}
+
+public static var colorIdentity:ColorTransform=new ColorTransform();
+ public var shader:Null<flixel.system.FlxAssets.FlxShader>;
+ public var wrapMode:openfl.display3D.Context3DWrapMode=CLAMP;
+ public var depthCompareMode:openfl.display3D.Context3DCompareMode=ALWAYS;
 }
 
 enum FlxDrawItemType

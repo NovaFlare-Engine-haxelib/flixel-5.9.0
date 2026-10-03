@@ -1,5 +1,7 @@
 package flixel.input.gamepad;
 
+import flixel.util.FlxColor;
+
 import flixel.input.FlxInput.FlxInputState;
 import flixel.input.gamepad.FlxGamepadMappedInput;
 import flixel.input.gamepad.lists.FlxGamepadAnalogList;
@@ -907,6 +909,88 @@ class FlxGamepad implements IFlxDestroyable
 			LabelValuePair.weak("model", model),
 			LabelValuePair.weak("deadZone", deadZone)
 		]);
+	}
+
+	public function update():Void
+	{
+		#if FLX_GAMEINPUT_API
+		var control:GameInputControl;
+		var button:FlxGamepadButton;
+
+		if (_device == null)
+			return;
+
+		for (i in 0..._device.numControls)
+		{
+			control = _device.getControlAt(i);
+
+			// quick absolute value for analog sticks
+			button = getButton(i);
+
+			if (isAxisForAnalogStick(i))
+			{
+				handleAxisMove(i, control.value, button.value);
+			}
+
+			button.value = control.value;
+
+			var value = Math.abs(control.value);
+
+			if (value < deadZone)
+			{
+				button.release();
+			}
+			else if (value > deadZone)
+			{
+				button.press();
+			}
+		}
+		#elseif FLX_JOYSTICK_API
+		for (i in 0...axis.length)
+		{
+			// do a reverse axis lookup to get a "fake" RawID and generate a button state object
+			var button = getButton(mapping.axisIndexToRawID(i));
+			if (button != null)
+			{
+				// TODO: account for circular deadzone if an analog stick input is detected?
+				var value = applyAxisFlip(Math.abs(axis[i]), i);
+				if (value > deadZone)
+				{
+					button.press();
+				}
+				else if (value < deadZone)
+				{
+					button.release();
+				}
+			}
+
+			axisActive = false;
+		}
+		#end
+
+		for (button in buttons)
+		{
+			if (button != null)
+			{
+				button.update();
+			}
+		}
+	}
+
+	public function rumble(lowFrequency:Float, highFrequency:Float, duration:Int):Void
+	{
+		#if FLX_GAMEINPUT_API
+		if (_device != null)
+			_device.rumble(lowFrequency, highFrequency, duration);
+		#end
+	}
+
+	public function setLED(color:FlxColor):Void
+	{
+		#if FLX_GAMEINPUT_API
+		if (_device != null)
+			_device.setLED(color.red, color.green, color.blue);
+		#end
 	}
 }
 

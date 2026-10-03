@@ -158,4 +158,30 @@ enum abstract FlxDirectionFlags(Int) from Int from FlxDirection to Int
 	@:op(A >= B) static function gte(a:FlxDirectionFlags, b:FlxDirectionFlags):Bool;
 
 	@:op(A <= B) static function lte(a:FlxDirectionFlags, b:FlxDirectionFlags):Bool;
+
+	var self(get, never):FlxDirectionFlags;
+
+	public inline function not():FlxDirectionFlags
+	{
+		return fromInt((~this & ANY.toInt()));
+	}
+
+	public inline function toInt():Int
+	{
+		return this;
+	}
+
+	public inline static function fromInt(value:Int):FlxDirectionFlags
+	{
+		return cast value;
+	}
+
+	inline function get_self():FlxDirectionFlags
+	{
+		#if (haxe >= version("4.3.0"))
+		return abstract;
+		#else
+		return cast this;
+		#end
+	}
 }

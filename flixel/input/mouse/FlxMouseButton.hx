@@ -76,6 +76,25 @@ class FlxMouseButton extends FlxInput<Int> implements IFlxDestroyable
 		if (FlxG.mouse.enabled)
 			release();
 	}
+
+#if FLX_MOUSE
+	override public function update():Void
+	{
+		super.update();
+
+		if (justPressed)
+		{
+			justPressedPosition.set(FlxG.mouse.viewX, FlxG.mouse.viewY);
+			justPressedTimeInTicks = FlxG.game.ticks;
+		}
+		#if FLX_POINTER_INPUT
+		else if (justReleased)
+		{
+			FlxG.swipes.push(new FlxSwipe(ID, justPressedPosition.copyTo(), FlxG.mouse.getViewPosition(FlxPoint.weak()), justPressedTimeInTicks));
+		}
+		#end
+	}
+#end
 }
 #end
 

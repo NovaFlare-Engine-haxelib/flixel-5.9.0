@@ -1,6 +1,25 @@
 package flixel.system.frontEnds;
 
 #if FLX_SOUND_SYSTEM
+import flixel.sound.FlxSoundData;
+#end
+#if FLX_SOUND_SYSTEM
+import flixel.util.FlxArrayUtil;
+#end
+#if FLX_SOUND_SYSTEM
+import openfl.utils.Assets;
+#end
+#if FLX_SOUND_SYSTEM
+import lime.media.AudioManager;
+#end
+#if FLX_SOUND_SYSTEM
+import lime.media.AudioBuffer;
+#end
+#if FLX_SOUND_SYSTEM
+import haxe.io.Bytes;
+#end
+
+#if FLX_SOUND_SYSTEM
 import flixel.FlxG;
 import flixel.group.FlxGroup;
 import flixel.input.keyboard.FlxKey;
@@ -30,7 +49,7 @@ class SoundFrontEnd
 	/**
 	 * Whether or not the game sounds are muted.
 	 */
-	public var muted:Bool = false;
+	public var muted(default,set):Bool = false;
 
 	/**
 	 * Set this hook to get a callback whenever the volume changes.
@@ -304,6 +323,7 @@ class SoundFrontEnd
 	 */
 	public function pause():Void
 	{
+ paused=true;
 		if (music != null && music.exists && music.active)
 		{
 			music.pause();
@@ -323,6 +343,7 @@ class SoundFrontEnd
 	 */
 	public function resume():Void
 	{
+ paused=false;
 		if (music != null && music.exists)
 		{
 			music.resume();
@@ -404,6 +425,9 @@ class SoundFrontEnd
 
 	function new()
 	{
+ lime.media.AudioManager.onDefaultPlaybackDeviceChanged.add(name->onDefaultDeviceChanged.dispatch(name));
+ lime.media.AudioManager.onPlaybackDeviceAdded.add(name->onDeviceAdded.dispatch(name));
+ lime.media.AudioManager.onPlaybackDeviceRemoved.add(name->onDeviceRemoved.dispatch(name));
 		#if FLX_SAVE
 		loadSavedPrefs();
 		#end
@@ -528,5 +552,246 @@ class SoundFrontEnd
 			}
 		}
 	}
+
+#if FLX_SOUND_SYSTEM
+	public static var poolMaxSounds:Int = 16;
+#end
+
+#if FLX_SOUND_SYSTEM
+	public var canAutoPause:Bool = true;
+#end
+
+#if FLX_SOUND_SYSTEM
+	public inline function checkCache(key:String):Bool
+	{
+		return getCache(key) != null;
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function removeCache(key:String, destroy = true):Void
+	{
+		if (key == null) return;
+
+		if (destroy)
+		{
+			var obj = getCache(key);
+			if (obj != null) obj.destroy();
+		}
+
+		Assets.cache.removeSound(key);
+		_cache.remove(key);
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public inline function addCache(soundData:FlxSoundData):FlxSoundData
+	{
+		if (soundData != null && (soundData.key is String)) _cache.set(soundData.key, soundData);
+		return soundData;
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public inline function getCache(key:String):FlxSoundData
+	{
+		return _cache.get(key);
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function clearCache():Void
+	{
+		if (_cache == null)
+		{
+			_cache = new Map();
+			return;
+		}
+
+		for (key in _cache.keys())
+		{
+			var obj = _cache.get(key);
+			if (obj.unused)
+			{
+				Assets.cache.removeSound(key);
+				_cache.remove(key);
+				obj.destroy();
+			}
+			else if (obj != null && !obj.persist && obj.useCount <= 0)
+			{
+				obj.unused = true;
+			}
+		}
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function resetCache():Void
+	{
+		if (_cache == null)
+		{
+			_cache = new Map();
+			return;
+		}
+
+		for (key in _cache.keys()) removeCache(key);
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function clearUnused():Void
+	{
+		for (key in _cache.keys())
+		{
+			var obj = _cache.get(key);
+			if (obj != null && obj.useCount <= 0 && !obj.persist && obj.destroyOnNoUse)
+			{
+				Assets.cache.removeSound(key);
+				_cache.remove(key);
+				obj.destroy();
+			}
+		}
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function findKeyForBuffer(buffer:AudioBuffer):Null<String>
+	{
+		for (key in _cache.keys())
+		{
+			var obj = _cache.get(key);
+			if (obj != null && obj.buffer == buffer) return key;
+		}
+		return null;
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function linearToLog(x:Float, minValue:Float = 0.001):Float
+	{
+		// If linear volume is 0, return 0
+		if (x <= 0) return 0;
+
+		// Ensure x is between 0 and 1
+		x = Math.min(1, x);
+
+		// Convert linear scale to logarithmic
+		return Math.exp(Math.log(minValue) * (1 - x));
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function logToLinear(x:Float, minValue:Float = 0.001):Float
+	{
+		// If logarithmic volume is below than minValue, return 0
+		if (x <= minValue) return 0;
+
+		// Ensure x is between minValue and 1
+		x = Math.min(1, x);
+
+		// Convert logarithmic scale to linear
+		return 1 - (Math.log(Math.max(x, minValue)) / Math.log(minValue));
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public dynamic function applySoundCurve(volume:Float)
+	{
+		return Math.pow(volume, 1.75);
+		
+		// Example of linear to logarithmic sound curve:
+		// final clampedVolume = Math.max(0, Math.min(1, volume));
+		// return Math.exp(Math.log(0.001) * (1 - clampedVolume));
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	public dynamic function reverseSoundCurve(curvedVolume:Float)
+	{
+		return Math.pow(curvedVolume, 0.5714285714285714);
+		
+		// Example of logarithmic to linear sound curve:
+		// final clampedVolume = Math.max(minValue, Math.min(1, x));
+		// return 1 - (Math.log(clampedVolume) / Math.log(0.001));
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	var _cache:Map<String, FlxSoundData> = new Map();
+#end
+
+#if FLX_SOUND_SYSTEM
+	public var automaticDefaultDevice(get, set):Bool;
+#end
+
+#if FLX_SOUND_SYSTEM
+	public var deviceName(get, set):String;
+#end
+
+#if FLX_SOUND_SYSTEM
+	public var paused(default, null):Bool = false;
+#end
+
+#if FLX_SOUND_SYSTEM
+	public var onDefaultDeviceChanged(default, null):FlxTypedSignal<String->Void> = new FlxTypedSignal<String->Void>();
+#end
+
+#if FLX_SOUND_SYSTEM
+	public var onDeviceAdded(default, null):FlxTypedSignal<String->Void> = new FlxTypedSignal<String->Void>();
+#end
+
+#if FLX_SOUND_SYSTEM
+	public var onDeviceRemoved(default, null):FlxTypedSignal<String->Void> = new FlxTypedSignal<String->Void>();
+#end
+
+#if FLX_SOUND_SYSTEM
+	inline function get_automaticDefaultDevice():Bool
+	{
+		return AudioManager.automaticDefaultPlaybackDevice;
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	function set_automaticDefaultDevice(value:Bool):Bool
+	{
+		if (AudioManager.automaticDefaultPlaybackDevice != value)
+		{
+			AudioManager.automaticDefaultPlaybackDevice = value;
+			if (value && AudioManager.getCurrentPlaybackDeviceName() != AudioManager.getPlaybackDefaultDeviceName())
+			{
+				AudioManager.refresh();
+			}
+		}
+		return value;
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	inline function get_deviceName():String
+	{
+		return AudioManager.getCurrentPlaybackDeviceName();
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	function set_deviceName(value:String):String
+	{
+		if (AudioManager.getCurrentPlaybackDeviceName() != value)
+		{
+			if (AudioManager.refresh(value)) return value;
+			else
+			{
+				AudioManager.refresh();
+				return AudioManager.getCurrentPlaybackDeviceName();
+			}
+		}
+		else
+		{
+			return value;
+		}
+	}
+#end
+
+public function set_muted(value:Bool):Bool {muted=value; set_volume(volume);return value;}
 }
 #end

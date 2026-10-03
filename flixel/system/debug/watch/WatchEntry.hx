@@ -167,4 +167,9 @@ class WatchEntry extends Sprite implements IFlxDestroyable
 		FlxDestroyUtil.destroy(valueText);
 		valueText = FlxDestroyUtil.removeChild(this, valueText);
 	}
+
+	public function getValueWidth():Float
+	{
+		return valueText.textWidth;
+	}
 }

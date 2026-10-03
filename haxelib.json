@@ -1,14 +1,28 @@
 {
-	"name": "flixel",
-	"url" : "https://github.com/HaxeFlixel/flixel",
-	"license": "MIT",
-	"tags": ["game", "openfl", "flash", "html5", "neko", "cpp", "android", "ios", "cross"],
-	"description": "HaxeFlixel is a 2D game engine based on OpenFL that delivers cross-platform games.",
-	"version": "5.9.0",
-	"releasenote": "Added FlxInputText, FlxG.assets, FlxBasePath and more",
-	"contributors": ["haxeflixel", "Gama11", "GeoKureli"],
-	"dependencies": {
-		"lime": "",
-		"openfl": ""
-	}
+  "name": "flixel",
+  "url": "https://github.com/NovaFlare-Engine-haxelib/flixel-5.9.0",
+  "license": "MIT",
+  "tags": [
+    "game",
+    "openfl",
+    "flash",
+    "html5",
+    "neko",
+    "cpp",
+    "android",
+    "ios",
+    "cross"
+  ],
+  "description": "HaxeFlixel is a 2D game engine based on OpenFL that delivers cross-platform games.",
+  "version": "5.9.0",
+  "releasenote": "NovaFlare NF/CNE/Origin compatibility; retains the NF SDL2 backend.",
+  "contributors": [
+    "haxeflixel",
+    "Gama11",
+    "GeoKureli"
+  ],
+  "dependencies": {
+    "lime": "",
+    "openfl": ""
+  }
 }

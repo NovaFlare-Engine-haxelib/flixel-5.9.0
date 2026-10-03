@@ -666,4 +666,20 @@ class FlxGraphic implements IFlxDestroyable
 
 		return value;
 	}
+
+	public static var defaultDestroyOnNoUse:Bool = false;
+
+	public var canBeRefreshed(get, never):Bool;
+
+	public function refresh():Void
+	{
+		var newBitmap:BitmapData = getBitmapFromSystem();
+		if (newBitmap != null)
+			bitmap = newBitmap;
+	}
+
+	inline function get_canBeRefreshed():Bool
+	{
+		return assetsClass != null || assetsKey != null;
+	}
 }

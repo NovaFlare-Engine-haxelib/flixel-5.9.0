@@ -1,5 +1,9 @@
 package flixel;
 
+#if FLX_GYROSCOPE
+import flixel.input.FlxGyroscope;
+#end
+
 import flixel.effects.postprocess.PostProcess;
 import flixel.math.FlxMath;
 import flixel.math.FlxRandom;
@@ -935,6 +939,10 @@ class FlxG
 			false
 		#end;
 	}
+
+#if FLX_GYROSCOPE
+	public static var gyroscope(default, null):FlxGyroscope;
+#end
 }
 
 enum FlxRenderMethod

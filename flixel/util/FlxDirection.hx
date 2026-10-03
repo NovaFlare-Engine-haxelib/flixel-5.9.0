@@ -21,4 +21,25 @@ enum abstract FlxDirection(Int) to Int
 			case DOWN: "D";
 		}
 	}
+
+	var self(get, never):FlxDirection;
+
+	inline public function toInt()
+	{
+		return this;
+	}
+
+	public inline static function fromInt(value:Int):FlxDirection
+	{
+		return cast value;
+	}
+
+	inline function get_self():FlxDirection
+	{
+		#if (haxe >= version("4.3.0"))
+		return abstract;
+		#else
+		return cast this;
+		#end
+	}
 }

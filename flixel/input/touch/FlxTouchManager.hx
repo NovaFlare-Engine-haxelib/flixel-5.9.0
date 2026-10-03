@@ -1,6 +1,13 @@
 package flixel.input.touch;
 
 #if FLX_TOUCH
+import flixel.input.FlxFlick;
+#end
+#if FLX_TOUCH
+import flixel.math.FlxPoint;
+#end
+
+#if FLX_TOUCH
 import openfl.Lib;
 import openfl.events.TouchEvent;
 import openfl.ui.Multitouch;
@@ -282,5 +289,23 @@ class FlxTouchManager implements IFlxInputManager
 	{
 		reset();
 	}
+
+#if FLX_TOUCH
+#if FLX_POINTER_INPUT
+	public var flickManager:FlxFlick = new FlxFlick();
+#end
+#end
+
+#if FLX_TOUCH
+	public var invertX:Bool = true;
+#end
+
+#if FLX_TOUCH
+	public var invertY:Bool = true;
+#end
+
+#if FLX_TOUCH
+	public var swipeThreshold:FlxPoint = FlxPoint.get(100, 100);
+#end
 }
 #end

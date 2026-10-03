@@ -83,6 +83,7 @@ class FlxTouch extends FlxPointer implements IFlxDestroyable implements IFlxInpu
 		{
 			justPressedPosition.set(viewX, viewY);
 			justPressedTimeInTicks = FlxG.game.ticks;
+ _startX=viewX;_startY=viewY;
 		}
 		#if FLX_POINTER_INPUT
 		else if (justReleased)
@@ -100,10 +101,12 @@ class FlxTouch extends FlxPointer implements IFlxDestroyable implements IFlxInpu
 	 */
 	function setXY(X:Int, Y:Int):Void
 	{
+ _prevX=x;_prevY=y;_prevViewX=viewX;_prevViewY=viewY;
 		flashPoint.setTo(X, Y);
 		flashPoint = FlxG.game.globalToLocal(flashPoint);
 
 		setRawPositionUnsafe(flashPoint.x, flashPoint.y);
+ velocity.set(deltaViewX,deltaViewY);
 	}
 
 	inline function get_touchPointID():Int
@@ -130,6 +133,174 @@ class FlxTouch extends FlxPointer implements IFlxDestroyable implements IFlxInpu
 	{
 		return input.justPressed;
 	}
+
+#if FLX_TOUCH
+	public var justMovedUp(get, never):Bool;
+#end
+
+#if FLX_TOUCH
+	public var justMovedDown(get, never):Bool;
+#end
+
+#if FLX_TOUCH
+	public var justMovedLeft(get, never):Bool;
+#end
+
+#if FLX_TOUCH
+	public var justMovedRight(get, never):Bool;
+#end
+
+#if FLX_TOUCH
+	public var justMoved(get, never):Bool;
+#end
+
+#if FLX_TOUCH
+	public var deltaX(get, default):Float;
+#end
+
+#if FLX_TOUCH
+	public var deltaY(get, default):Float;
+#end
+
+#if FLX_TOUCH
+	public var deltaViewX(get, default):Float;
+#end
+
+#if FLX_TOUCH
+	public var deltaViewY(get, default):Float;
+#end
+
+#if FLX_TOUCH
+	public var ticksDeltaSincePress(get, default):Float;
+#end
+
+#if FLX_TOUCH
+	public var velocity(default, null):FlxPoint = FlxPoint.get();
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_justMovedUp():Bool
+	{
+		var swiped:Bool = _swipeDeltaY > FlxG.touches.swipeThreshold.y;
+		if (swiped)
+			_startY = viewY;
+		return swiped;
+	}
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_justMovedDown():Bool
+	{
+		var swiped:Bool = _swipeDeltaY < -FlxG.touches.swipeThreshold.y;
+		if (swiped)
+			_startY = viewY;
+		return swiped;
+	}
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_justMovedLeft():Bool
+	{
+		var swiped:Bool = _swipeDeltaX > FlxG.touches.swipeThreshold.x;
+		if (swiped)
+			_startX = viewX;
+		return swiped;
+	}
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_justMovedRight():Bool
+	{
+		var swiped:Bool = _swipeDeltaX < -FlxG.touches.swipeThreshold.x;
+		if (swiped)
+			_startX = viewX;
+		return swiped;
+	}
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_justMoved():Bool
+		return x != _prevX || y != _prevY;
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_deltaX():Float
+		return x - _prevX;
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_deltaY():Float
+		return y - _prevY;
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_deltaViewX():Float
+		return viewX - _prevViewX;
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_deltaViewY():Float
+		return viewY - _prevViewY;
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get_ticksDeltaSincePress():Float
+		return FlxG.game.ticks - justPressedTimeInTicks;
+#end
+
+#if FLX_TOUCH
+	var _startY:Float = 0;
+#end
+
+#if FLX_TOUCH
+	var _swipeDeltaY(get, never):Float;
+#end
+
+#if FLX_TOUCH
+	var _startX:Float = 0;
+#end
+
+#if FLX_TOUCH
+	var _swipeDeltaX(get, never):Float;
+#end
+
+#if FLX_TOUCH
+	var _prevX:Float = 0;
+#end
+
+#if FLX_TOUCH
+	var _prevY:Float = 0;
+#end
+
+#if FLX_TOUCH
+	var _prevViewX:Float = 0;
+#end
+
+#if FLX_TOUCH
+	var _prevViewY:Float = 0;
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get__swipeDeltaY():Float
+		return viewY - _startY;
+#end
+
+#if FLX_TOUCH
+	@:noCompletion
+	inline function get__swipeDeltaX():Float
+		return viewX - _startX;
+#end
 }
 #else
 class FlxTouch {}

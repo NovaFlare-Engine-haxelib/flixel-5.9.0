@@ -1359,6 +1359,8 @@ class FlxText extends FlxSprite
 		_regen = false;
 		return Frames;
 	}
+
+	public static var modifyTextFormatAntialias:Bool = false;
 }
 
 @:allow(flixel.text.FlxText.applyFormats)

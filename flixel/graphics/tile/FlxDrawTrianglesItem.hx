@@ -24,7 +24,7 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 	static var rect:FlxRect = FlxRect.get();
 
 	#if !flash
-	public var shader:FlxShader;
+	
 	var alphas:Array<Float>;
 	var colorMultipliers:Array<Float>;
 	var colorOffsets:Array<Float>;
@@ -45,6 +45,7 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 	{
 		super();
 		type = FlxDrawItemType.TRIANGLES;
+ wrapMode=REPEAT;
 		#if !flash
 		alphas = [];
 		#end
@@ -62,7 +63,7 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		var shader = shader != null ? shader : graphics.shader;
 		shader.bitmap.input = graphics.bitmap;
 		shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
-		shader.bitmap.wrap = REPEAT; // in order to prevent breaking tiling behaviour in classes that use drawTriangles
+		shader.bitmap.wrap = wrapMode; // in order to prevent breaking tiling behaviour in classes that use drawTriangles
 		shader.alpha.value = alphas;
 
 		if (colored || hasColorOffsets)
@@ -83,12 +84,13 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		camera.canvas.graphics.overrideBlendMode(blend);
 		#end
 
-		camera.canvas.graphics.beginShaderFill(shader);
+		camera.canvas.graphics.overrideDepthTest(depthCompareMode!=ALWAYS,depthCompareMode);
+ camera.canvas.graphics.beginShaderFill(shader);
 		#else
 		camera.canvas.graphics.beginBitmapFill(graphics.bitmap, null, true, (camera.antialiasing || antialiasing));
 		#end
 
-		camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NONE);
+		camera.canvas.graphics.drawTriangles(vertices, indices, uvtData, culling);
 		camera.canvas.graphics.endFill();
 
 		#if FLX_DEBUG
@@ -106,6 +108,7 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 	override public function reset():Void
 	{
 		super.reset();
+ wrapMode=REPEAT;culling=NONE;
 		#if !flash
 		shader = null;
 		#end
@@ -390,4 +393,17 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 	{
 		return Std.int(indices.length / 3);
 	}
+
+public var culling:TriangleCulling=NONE;
+ public function addColoredTriangles(vertices:DrawData<Float>,indices:DrawData<Int>,uvtData:DrawData<Float>,?colors:DrawData<Int>,?position:FlxPoint,?cameraBounds:FlxRect,?transforms:Array<ColorTransform>):Void {
+  #if !flash var before=alphas.length; #end
+  addTriangles(vertices,indices,uvtData,colors,position,cameraBounds,transforms!=null&&transforms.length>0?transforms[0]:null);
+  #if !flash
+  if(transforms!=null&&transforms.length>0) for(i in before...alphas.length) {
+   var c=transforms[indices[i-before]%transforms.length]; if(c==null) c=FlxDrawBaseItem.colorIdentity; alphas[i]=c.alphaMultiplier;
+   if(colored||hasColorOffsets) { var k=i*4; colorMultipliers[k]=c.redMultiplier; colorMultipliers[k+1]=c.greenMultiplier; colorMultipliers[k+2]=c.blueMultiplier; colorMultipliers[k+3]=1;
+    colorOffsets[k]=c.redOffset; colorOffsets[k+1]=c.greenOffset; colorOffsets[k+2]=c.blueOffset; colorOffsets[k+3]=c.alphaOffset; }
+  }
+  #end
+ }
 }

@@ -318,5 +318,70 @@ class FlxSoundTray extends Sprite
 
 		x = (0.5 * (Lib.current.stage.stageWidth - _width * _defaultScale) - FlxG.game.x);
 	}
+
+#if FLX_SOUND_SYSTEM
+	public inline function showIncrement():Void show(true);
+#end
+
+#if FLX_SOUND_SYSTEM
+	public inline function showDecrement():Void show(false);
+#end
+
+#if FLX_SOUND_SYSTEM
+	public function showAnim(volume:Float, ?sound:FlxSoundAsset, duration = 1.0, label = "VOLUME")
+	{
+		if (sound != null)
+			FlxG.sound.play(sound);
+		
+		_timer = duration;
+		y = 0;
+		visible = true;
+		active = true;
+		final numBars = FlxG.sound.muted ? 0 : Math.round(volume * _bars.length);
+		for (i in 0..._bars.length)
+			_bars[i].alpha = i < numBars ? 1.0 : 0.5;
+
+		_label.text = label;
+		updateSize();
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	var _label(get,never):TextField;
+ function get__label():TextField return text;
+#end
+
+#if FLX_SOUND_SYSTEM
+	function updateSize()
+	{
+		if (_label.textWidth + 10 > _bg.width)
+			_label.width = _label.textWidth + 10;
+			
+		_bg.width = _label.textWidth + 10 > _minWidth ? _label.textWidth + 10 : _minWidth;
+		
+		_label.width = _bg.width;
+		
+		var bx:Int = Std.int(_bg.width / 2 - 30);
+		var by:Int = 14;
+		for (i in 0..._bars.length)
+		{
+			_bars[i].x = bx;
+			_bars[i].y = by;
+			bx += 6;
+			by--;
+		}
+		
+		screenCenter();
+	}
+#end
+
+#if FLX_SOUND_SYSTEM
+	var _bg(get,never):Bitmap;
+ function get__bg():Bitmap return background;
+#end
+
+#if FLX_SOUND_SYSTEM
+	var _minWidth:Int = 80;
+#end
 }
 #end

@@ -1,6 +1,15 @@
 package flixel.input.mouse;
 
 #if FLX_MOUSE
+import flixel.math.FlxPoint;
+#end
+#if FLX_MOUSE
+#if FLX_NATIVE_CURSOR
+import openfl.ui.MouseCursorData;
+#end
+#end
+
+#if FLX_MOUSE
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.display.Sprite;
@@ -534,7 +543,13 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 		_rightButton.handleInput();
 		#end
 
-		// Update the wheel
+		velocity.set(deltaViewX,deltaViewY);
+ if(justPressed) {_startX=viewX;_startY=viewY;}
+ #if FLX_POINTER_INPUT
+ if(justReleased) flickManager.initFlick(-1,velocity);
+ if(pressed) flickManager.destroy(); else flickManager.update(FlxG.elapsed);
+ #end
+ // Update the wheel
 		if (!_wheelUsed)
 		{
 			wheel = 0;
@@ -589,6 +604,7 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 		{
 			_wheelUsed = true;
 			wheel = flashEvent.delta;
+ deltaWheel.set(flashEvent.deltaX,flashEvent.deltaY);
 		}
 	}
 
@@ -800,5 +816,127 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 	{
 		return cursor = value;
 	}
+
+#if FLX_MOUSE
+	public var justMovedUp(get, never):Bool;
+#end
+
+#if FLX_MOUSE
+	public var justMovedDown(get, never):Bool;
+#end
+
+#if FLX_MOUSE
+	public var justMovedLeft(get, never):Bool;
+#end
+
+#if FLX_MOUSE
+	public var justMovedRight(get, never):Bool;
+#end
+
+#if FLX_MOUSE
+	public var ticksDeltaSincePress(get, never):Float;
+#end
+
+#if FLX_MOUSE
+	public var velocity(default, null):FlxPoint = FlxPoint.get();
+#end
+
+#if FLX_MOUSE
+	public var swipeThreshold(default, null):FlxPoint = FlxPoint.get(100, 100);
+#end
+
+#if FLX_MOUSE
+#if FLX_POINTER_INPUT
+	public var flickManager(default, null):FlxFlick = new FlxFlick();
+#end
+#end
+
+#if FLX_MOUSE
+	@:noCompletion
+	function get_justMovedUp():Bool
+	{
+		var swiped:Bool = _swipeDeltaY < -swipeThreshold.y;
+		if (swiped)
+			_startY = viewY;
+		return swiped;
+	}
+#end
+
+#if FLX_MOUSE
+	@:noCompletion
+	function get_justMovedDown():Bool
+	{
+		var swiped:Bool = _swipeDeltaY > swipeThreshold.y;
+		if (swiped)
+			_startY = viewY;
+		return swiped;
+	}
+#end
+
+#if FLX_MOUSE
+	@:noCompletion
+	function get_justMovedLeft():Bool
+	{
+		var swiped:Bool = _swipeDeltaX < -swipeThreshold.x;
+		if (swiped)
+			_startX = viewX;
+		return swiped;
+	}
+#end
+
+#if FLX_MOUSE
+	@:noCompletion
+	function get_justMovedRight():Bool
+	{
+		var swiped:Bool = _swipeDeltaX > swipeThreshold.x;
+		if (swiped)
+			_startX = viewX;
+		return swiped;
+	}
+#end
+
+#if FLX_MOUSE
+	@:noCompletion
+	function get_ticksDeltaSincePress():Float
+		return FlxG.game.ticks - justPressedTimeInTicks;
+#end
+
+#if FLX_MOUSE
+	var _startY:Float = 0;
+#end
+
+#if FLX_MOUSE
+	var _swipeDeltaY(get, never):Float;
+#end
+
+#if FLX_MOUSE
+	var _startX:Float = 0;
+#end
+
+#if FLX_MOUSE
+	var _swipeDeltaX(get, never):Float;
+#end
+
+#if FLX_MOUSE
+	@:noCompletion
+	inline function get__swipeDeltaY():Float
+		return viewY - _startY;
+#end
+
+#if FLX_MOUSE
+	@:noCompletion
+	inline function get__swipeDeltaX():Float
+		return viewX - _startX;
+#end
+
+#if FLX_MOUSE
+	public var deltaWheel(default, null):FlxPoint = FlxPoint.get();
+#end
+
+#if FLX_MOUSE
+#if FLX_POINTER_INPUT
+	public var wheelFlickManager(default, null):FlxFlick = new FlxFlick();
+#end
+#end
 }
 #end
