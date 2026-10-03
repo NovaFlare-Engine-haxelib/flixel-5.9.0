@@ -543,13 +543,7 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 		_rightButton.handleInput();
 		#end
 
-		velocity.set(deltaViewX,deltaViewY);
- if(justPressed) {_startX=viewX;_startY=viewY;}
- #if FLX_POINTER_INPUT
- if(justReleased) flickManager.initFlick(-1,velocity);
- if(pressed) flickManager.destroy(); else flickManager.update(FlxG.elapsed);
- #end
- // Update the wheel
+		// Update the wheel
 		if (!_wheelUsed)
 		{
 			wheel = 0;
@@ -604,7 +598,6 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 		{
 			_wheelUsed = true;
 			wheel = flashEvent.delta;
- deltaWheel.set(flashEvent.deltaX,flashEvent.deltaY);
 		}
 	}
 

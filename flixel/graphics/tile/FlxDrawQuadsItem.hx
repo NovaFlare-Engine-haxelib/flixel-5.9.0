@@ -15,8 +15,8 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 
 	
 
-	public var rects:Vector<Float>;
-	public var transforms:Vector<Float>;
+	var rects:Vector<Float>;
+	var transforms:Vector<Float>;
 	var alphas:Array<Float>;
 	var colorMultipliers:Array<Float>;
 	var colorOffsets:Array<Float>;
@@ -123,7 +123,6 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		shader.bitmap.input = graphics.bitmap;
 		shader.bitmap.filter = (#if CODENAME_ENGINE_COMPAT FlxG.enableAntialiasing && #end (camera.antialiasing || antialiasing)) ? LINEAR : NEAREST;
 		shader.alpha.value = alphas;
- shader.bitmap.wrap=wrapMode;
 
 		if (colored || hasColorOffsets)
 		{
@@ -137,8 +136,7 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		#if (openfl > "8.7.0")
 		camera.canvas.graphics.overrideBlendMode(blend);
 		#end
-		camera.canvas.graphics.overrideDepthTest(depthCompareMode!=ALWAYS,depthCompareMode);
- camera.canvas.graphics.beginShaderFill(shader);
+		camera.canvas.graphics.beginShaderFill(shader);
 		camera.canvas.graphics.drawQuads(rects, null, transforms);
 		super.render(camera);
 	}

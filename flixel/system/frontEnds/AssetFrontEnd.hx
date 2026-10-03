@@ -159,7 +159,7 @@ class AssetFrontEnd
 			case BINARY: Assets.getBytes(id);
 			case IMAGE: Assets.getBitmapData(id, useCache);
 			case SOUND: Assets.getSound(id, useCache);
- case MUSIC: Assets.getMusic(id,useCache);
+			case MUSIC: Assets.getMusic(id, useCache);
 			case FONT: Assets.getFont(id, useCache);
 		}
 	}
@@ -225,7 +225,7 @@ class AssetFrontEnd
 			case BINARY: Assets.loadBytes(id);
 			case IMAGE: Assets.loadBitmapData(id, useCache);
 			case SOUND: Assets.loadSound(id, useCache);
- case MUSIC: Assets.loadMusic(id,useCache);
+			case MUSIC: Assets.loadMusic(id, useCache);
 			case FONT: Assets.loadFont(id, useCache);
 		}
 	}
@@ -742,7 +742,7 @@ enum abstract FlxAssetType(String)
 			case FONT: AssetType.FONT;
 			case IMAGE: AssetType.IMAGE;
 			case SOUND: AssetType.SOUND;
- case MUSIC: AssetType.MUSIC;
+			case MUSIC: AssetType.MUSIC;
 			case TEXT: AssetType.TEXT;
 		}
 	}

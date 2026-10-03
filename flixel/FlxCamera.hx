@@ -1341,7 +1341,7 @@ class FlxCamera extends FlxBasic
 		// follow the target, if there is one
 		if (target != null #if CODENAME_ENGINE_COMPAT && followEnabled && !paused #end)
 		{
-			if(followActive) updateFollow();
+			updateFollow();
 			#if CODENAME_ENGINE_COMPAT
 			updateLerp(elapsed);
 			#end
@@ -1352,8 +1352,8 @@ class FlxCamera extends FlxBasic
 		if (!paused)
 		{
 		#end
-		if(fxActive) updateFlash(elapsed);
-		if(fxActive) updateFade(elapsed);
+		updateFlash(elapsed);
+		updateFade(elapsed);
 		#if CODENAME_ENGINE_COMPAT
 		}
 		#end
@@ -1396,7 +1396,7 @@ class FlxCamera extends FlxBasic
 		#if CODENAME_ENGINE_COMPAT
 		if (!paused)
 		#end
-			if(fxActive) updateShake(elapsed);
+			updateShake(elapsed);
 		updateFlashSpritePosition();
 	}
 
@@ -1794,7 +1794,7 @@ class FlxCamera extends FlxBasic
 	 */
 	public function snapToTarget():Void
 	{
-		if(followActive) updateFollow();
+		updateFollow();
 		scroll.copyFrom(_scrollTarget);
 	}
 

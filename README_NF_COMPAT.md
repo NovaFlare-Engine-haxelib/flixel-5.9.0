@@ -1,9 +1,7 @@
-# NovaFlare compatibility
+# NovaFlare additive compatibility interfaces
 
-Adds CNE/Origin utilities, shared FlxSoundData caches, effects and source adapters, draw-item color/depth/wrap controls, input helpers, and UI/debugger compatibility around NF's existing Flixel classes.
+Restores original camera updates, mouse/touch updates, sound playback/loading/reset, sound frontend initialization and ordinary quad/triangle rendering. Compatibility flags do not intercept legacy updates or draws. Original color-transform methods remain ordinary reflective functions. Added sound source forms convert to OpenFL Sound before entering the unchanged original loader. No automatic device event registration or new mute setter is installed.
 
-NF loadEmbedded(asset, looped, autoDestroy, onComplete) is retained because Origin's FlxStreamSound overrides that signature. Use loadStreamed/loadFromURL/prepare for the additional CNE parameters. An instance FlxSound.load is intentionally not introduced because Origin's FunkinSound declares a static load with a different contract. The library build macro removes only FunkinSound's redundant paused getter/property, allowing it to inherit the identical _paused-backed API; no engine source edit is required.
+The earlier broad integration changed existing behavior and is superseded by this repair. Compatibility additions must preserve existing NF calls, defaults and update/render/audio paths. Unsupported additions may return a neutral result instead of replacing a legacy implementation.
 
-scrollAngle applies a canvas rotation. shakeMatrixFix is retained as a compatibility flag with NF's default behavior; the Origin-specific matrix correction is not implemented. Existing NF audio playback (including optional hxvlc) remains in place.
-
-Upstream licenses and contributor notices are preserved.
+Windows x64 and Android ARMv7/ARM64/x86_64 native Lime binaries have been rebuilt. The full game targets Windows x64 and Android ARM64. Visual gameplay acceptance is performed manually by the project owner.

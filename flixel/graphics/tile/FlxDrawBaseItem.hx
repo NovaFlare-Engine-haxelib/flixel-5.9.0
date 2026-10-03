@@ -42,7 +42,6 @@ class FlxDrawBaseItem<T>
 
 	public function reset():Void
 	{
- shader=null;wrapMode=CLAMP;depthCompareMode=ALWAYS;
 		graphics = null;
 		antialiasing = false;
 		nextTyped = null;

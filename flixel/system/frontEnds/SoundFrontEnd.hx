@@ -49,7 +49,7 @@ class SoundFrontEnd
 	/**
 	 * Whether or not the game sounds are muted.
 	 */
-	public var muted(default,set):Bool = false;
+	public var muted:Bool = false;
 
 	/**
 	 * Set this hook to get a callback whenever the volume changes.
@@ -323,7 +323,6 @@ class SoundFrontEnd
 	 */
 	public function pause():Void
 	{
- paused=true;
 		if (music != null && music.exists && music.active)
 		{
 			music.pause();
@@ -343,7 +342,6 @@ class SoundFrontEnd
 	 */
 	public function resume():Void
 	{
- paused=false;
 		if (music != null && music.exists)
 		{
 			music.resume();
@@ -425,9 +423,6 @@ class SoundFrontEnd
 
 	function new()
 	{
- lime.media.AudioManager.onDefaultPlaybackDeviceChanged.add(name->onDefaultDeviceChanged.dispatch(name));
- lime.media.AudioManager.onPlaybackDeviceAdded.add(name->onDeviceAdded.dispatch(name));
- lime.media.AudioManager.onPlaybackDeviceRemoved.add(name->onDeviceRemoved.dispatch(name));
 		#if FLX_SAVE
 		loadSavedPrefs();
 		#end

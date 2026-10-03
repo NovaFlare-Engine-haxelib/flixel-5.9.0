@@ -83,7 +83,6 @@ class FlxTouch extends FlxPointer implements IFlxDestroyable implements IFlxInpu
 		{
 			justPressedPosition.set(viewX, viewY);
 			justPressedTimeInTicks = FlxG.game.ticks;
- _startX=viewX;_startY=viewY;
 		}
 		#if FLX_POINTER_INPUT
 		else if (justReleased)
@@ -101,12 +100,10 @@ class FlxTouch extends FlxPointer implements IFlxDestroyable implements IFlxInpu
 	 */
 	function setXY(X:Int, Y:Int):Void
 	{
- _prevX=x;_prevY=y;_prevViewX=viewX;_prevViewY=viewY;
 		flashPoint.setTo(X, Y);
 		flashPoint = FlxG.game.globalToLocal(flashPoint);
 
 		setRawPositionUnsafe(flashPoint.x, flashPoint.y);
- velocity.set(deltaViewX,deltaViewY);
 	}
 
 	inline function get_touchPointID():Int

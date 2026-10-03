@@ -799,7 +799,7 @@ import openfl.geom.Point;
 	 * @param   p  point to multiply
 	 * @return  dot product of two points
 	 */
-	inline public function dotProductWeak(p:FlxPoint):Float
+	inline function dotProductWeak(p:FlxPoint):Float
 	{
 		return x * p.x + y * p.y;
 	}
@@ -848,7 +848,7 @@ import openfl.geom.Point;
 	 * @param   p  point to multiply
 	 * @return  the length of cross product of two points
 	 */
-	inline public function crossProductLengthWeak(p:FlxPoint):Float
+	inline function crossProductLengthWeak(p:FlxPoint):Float
 	{
 		return x * p.y - y * p.x;
 	}
@@ -873,7 +873,7 @@ import openfl.geom.Point;
 	 * @param   p  point to check
 	 * @return  true - if they are parallel
 	 */
-	inline public function isParallelWeak(p:FlxPoint):Bool
+	inline function isParallelWeak(p:FlxPoint):Bool
 	{
 		return Math.abs(crossProductLengthWeak(p)) < EPSILON_SQUARED;
 	}
@@ -1077,7 +1077,7 @@ import openfl.geom.Point;
 	 * @param   proj  optional argument - result point
 	 * @return  projection of the point
 	 */
-	inline public function projectToNormalizedWeak(p:FlxPoint, ?proj:FlxPoint):FlxPoint
+	inline function projectToNormalizedWeak(p:FlxPoint, ?proj:FlxPoint):FlxPoint
 	{
 		var dp:Float = dotProductWeak(p);
 
@@ -1103,7 +1103,7 @@ import openfl.geom.Point;
 	 * Dot product of left the normal point and point p.
 	 * Meant for internal use, does not call putWeak.
 	 */
-	inline public function perpProductWeak(p:FlxPoint):Float
+	inline function perpProductWeak(p:FlxPoint):Float
 	{
 		return lx * p.x + ly * p.y;
 	}
@@ -1134,7 +1134,7 @@ import openfl.geom.Point;
 	 * @param   p  the second point
 	 * @return  the ratio between the perpProducts of this point and p point
 	 */
-	inline public function ratioWeak(a:FlxPoint, b:FlxPoint, p:FlxPoint):Float
+	inline function ratioWeak(a:FlxPoint, b:FlxPoint, p:FlxPoint):Float
 	{
 		if (isParallelWeak(p))
 			return Math.NaN;

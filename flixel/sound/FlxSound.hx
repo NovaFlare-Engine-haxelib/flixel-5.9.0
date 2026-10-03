@@ -324,9 +324,8 @@ class FlxSound extends FlxBasic
 	/**
 	 * An internal function for clearing all the variables used by sounds.
 	 */
-	#if CODENAME_ENGINE_COMPAT public #end function reset(force:Bool=false):Void
+	#if CODENAME_ENGINE_COMPAT public #end function reset():Void
 	{
- loopCount=0; __compatEffects.resize(0);
 		destroy();
 		
 		x = 0;
@@ -358,7 +357,6 @@ class FlxSound extends FlxBasic
 	
 	override public function destroy():Void
 	{
- 
 		// Prevents double destroy
 		if (group != null)
 			group.remove(this);
@@ -383,7 +381,6 @@ class FlxSound extends FlxBasic
 			_sound = null;
 		}
 
- if(data!=null) {data.decrementUseCount();data=null;}
 		#if hxvlc
 		_onVLC = false;
 		if (_vlcPlayer != null)
@@ -525,13 +522,7 @@ class FlxSound extends FlxBasic
 		}
 		#end
 		
-		if ((EmbeddedSound is FlxSoundData)) {
-   data=cast EmbeddedSound; data.incrementUseCount(); _sound=Sound.fromAudioBuffer(data.buffer);
-  } else if ((EmbeddedSound is lime.media.AudioBuffer)) {
-   data=FlxSoundData.fromAudioBuffer(cast EmbeddedSound); data.incrementUseCount(); _sound=Sound.fromAudioBuffer(data.buffer);
-  } else if ((EmbeddedSound is haxe.io.Bytes)) {
-   data=FlxSoundData.fromByteArray(cast EmbeddedSound); if(data!=null) {data.incrementUseCount();_sound=Sound.fromAudioBuffer(data.buffer);}
-  } else if ((EmbeddedSound is Sound))
+		if ((EmbeddedSound is Sound))
 		{
 			_sound = EmbeddedSound;
 		}
@@ -968,7 +959,6 @@ class FlxSound extends FlxBasic
 		_time = StartTime;
 		_paused = false;
 		_channel = _sound.play(_time, 0, _transform);
- var compatSource=__compatAudioSource(); if(compatSource!=null) for(effect in __compatEffects) compatSource.addEffect(effect);
 		if (_channel != null)
 		{
 			#if FLX_PITCH
@@ -996,9 +986,8 @@ class FlxSound extends FlxBasic
 		if (onComplete != null)
 			onComplete();
 			
-		if (looped && (loopUntil < 0 || loopCount < loopUntil))
+		if (looped)
 		{
- loopCount++;
 			cleanup(false);
 			play(false, loopTime, endTime);
 		}
@@ -1310,7 +1299,7 @@ public static var defaultTimeScaledPitch:Bool = false;
  public function unload():FlxSound { reset(); return this; }
  public function loadStreamed(path:String,?looped:Bool,?loopTime:Float,?endTime:Float,autoDestroy=false,?onComplete:Void->Void):FlxSound {
   var d=FlxSoundData.fromAssetKey(path,true);
-  if(d!=null) loadEmbedded(d,looped==true,autoDestroy,onComplete);
+  if(d!=null) { data=d; loadEmbedded(Sound.fromAudioBuffer(d.buffer),looped==true,autoDestroy,onComplete); }
   if(loopTime!=null) this.loopTime=loopTime; if(endTime!=null) this.endTime=endTime;
   return this;
  }
