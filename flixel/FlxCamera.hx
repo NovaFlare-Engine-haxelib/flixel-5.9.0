@@ -555,10 +555,12 @@ class FlxCamera extends FlxBasic
 	/** Adds a shader filter while preserving any existing camera filters. */
 	public function addShader(shader:FlxShader):ShaderFilter
 	{
-		if (filters == null)
-			filters = [];
+		// update() caches the array identity; publish a new array so OpenFL
+		// receives the changed filter list instead of keeping its old copy.
+		var updatedFilters = filters == null ? [] : filters.copy();
 		var filter = new ShaderFilter(shader);
-		filters.push(filter);
+		updatedFilters.push(filter);
+		filters = updatedFilters;
 		return filter;
 	}
 
@@ -570,7 +572,12 @@ class FlxCamera extends FlxBasic
 		for (filter in filters)
 		{
 			if (filter is ShaderFilter && cast(filter, ShaderFilter).shader == shader)
-				return filters.remove(filter);
+			{
+				var updatedFilters = filters.copy();
+				updatedFilters.remove(filter);
+				filters = updatedFilters;
+				return true;
+			}
 		}
 		return false;
 	}
