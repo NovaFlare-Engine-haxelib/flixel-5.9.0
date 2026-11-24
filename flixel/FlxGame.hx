@@ -128,7 +128,7 @@ class FlxGame extends Sprite
 	/**
 	 * Ticks at the last draw call for computing drawElapsed.
 	 */
-	var _lastDrawTicks:Int = 0;
+	var _lastDrawTicks:Float = -1.0;
 
 	/**
 	 * Time stamp of game startup. Needed on JS where `Lib.getTimer()`
@@ -167,6 +167,10 @@ class FlxGame extends Sprite
 	 * Whether the game lost focus.
 	 */
 	var _lostFocus:Bool = false;
+	var _focusedFrameRate:Null<Float>;
+	#if !flash
+	var _focusedDrawFrameRate:Null<Int>;
+	#end
 
 	/**
 	 * The filters array to be applied to the game.
@@ -482,6 +486,8 @@ class FlxGame extends Sprite
 		}
 		#end
 
+		restoreFocusFrameRates();
+
 		#if mobile
 		// just check if device orientation has been changed
 		onResize(_);
@@ -503,21 +509,6 @@ class FlxGame extends Sprite
 		debugger.stats.onFocus();
 		#end
 
-		#if !flash
-		if (stage.window != null)
-		{
-			// ENTER_UPDATE and ENTER_FRAME are independent in this fork. Restoring
-			// only Stage.frameRate overwrote the update clock with the render rate
-			// every time the window regained focus.
-			stage.window.frameRate = FlxG.fixedTimestep ? Std.int(1000 / FlxG.fixedStepMS) : FlxG.updateFramerate;
-			stage.window.drawFrameRate = FlxG.drawFramerate;
-			stage.window.lockRender = true;
-		}
-		else
-			stage.frameRate = FlxG.drawFramerate;
-		#else
-		stage.frameRate = FlxG.drawFramerate;
-		#end
 		#if FLX_SOUND_SYSTEM
 		FlxG.sound.onFocus();
 		#end
@@ -552,11 +543,55 @@ class FlxGame extends Sprite
 		debugger.stats.onFocusLost();
 		#end
 
-		stage.frameRate = focusLostFramerate;
+		limitFocusFrameRates();
 		#if FLX_SOUND_SYSTEM
 		FlxG.sound.onFocusLost();
 		#end
 		FlxG.inputs.onFocusLost();
+	}
+
+	function limitFocusFrameRates():Void
+	{
+		if (_focusedFrameRate != null) return;
+
+		#if !flash
+		final window = stage.window;
+		if (window != null)
+		{
+			_focusedFrameRate = window.frameRate;
+			_focusedDrawFrameRate = window.drawFrameRate;
+			if (_focusedFrameRate > focusLostFramerate)
+				window.frameRate = focusLostFramerate;
+			if (_focusedDrawFrameRate > focusLostFramerate)
+				window.drawFrameRate = focusLostFramerate;
+			return;
+		}
+		#end
+
+		_focusedFrameRate = stage.frameRate;
+		if (_focusedFrameRate <= 0 || _focusedFrameRate > focusLostFramerate)
+			stage.frameRate = focusLostFramerate;
+	}
+
+	function restoreFocusFrameRates():Void
+	{
+		final frameRate = _focusedFrameRate;
+		if (frameRate == null) return;
+		_focusedFrameRate = null;
+
+		#if !flash
+		final drawFrameRate = _focusedDrawFrameRate;
+		_focusedDrawFrameRate = null;
+		final window = stage.window;
+		if (window != null && drawFrameRate != null)
+		{
+			window.frameRate = frameRate;
+			window.drawFrameRate = drawFrameRate;
+			return;
+		}
+		#end
+
+		stage.frameRate = frameRate;
 	}
 
 	@:allow(flixel.FlxG)
@@ -957,14 +992,14 @@ class FlxGame extends Sprite
 
 	function updateDrawElapsed():Void
 	{
-		var now = getTicks();
-		if (_lastDrawTicks == 0)
+		var now:Float = #if lime lime.system.System.getTimerNano() #else getTicks() #end;
+		if (_lastDrawTicks == -1.0)
 		{
 			_lastDrawTicks = now;
 			FlxG.drawElapsed = 0;
 			return;
 		}
-		var dtMS = now - _lastDrawTicks;
+		var dtMS = Math.max(0, now - _lastDrawTicks);
 		_lastDrawTicks = now;
 
 		var e = FlxG.timeScale * (dtMS / 1000);

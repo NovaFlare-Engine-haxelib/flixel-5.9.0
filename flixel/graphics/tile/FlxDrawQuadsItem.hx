@@ -55,15 +55,20 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	override public function addQuad(frame:FlxFrame, matrix:FlxMatrix, ?transform:ColorTransform):Void
 	{
 		var rect = frame.frame;
-		rects.push(rect.x);
-		rects.push(rect.y);
-		rects.push(rect.width);
-		rects.push(rect.height);
+		var scaleX = frame.parent.textureScaleX;
+		var scaleY = frame.parent.textureScaleY;
+		rects.push(rect.x * scaleX);
+		rects.push(rect.y * scaleY);
+		rects.push(rect.width * scaleX);
+		rects.push(rect.height * scaleY);
 
-		transforms.push(matrix.a);
-		transforms.push(matrix.b);
-		transforms.push(matrix.c);
-		transforms.push(matrix.d);
+		// The backend transforms vertices built from stored bitmap pixels.
+		var logicalScaleX = 1 / scaleX;
+		var logicalScaleY = 1 / scaleY;
+		transforms.push(matrix.a * logicalScaleX);
+		transforms.push(matrix.b * logicalScaleX);
+		transforms.push(matrix.c * logicalScaleY);
+		transforms.push(matrix.d * logicalScaleY);
 		transforms.push(matrix.tx);
 		transforms.push(matrix.ty);
 

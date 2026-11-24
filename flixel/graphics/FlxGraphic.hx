@@ -646,6 +646,26 @@ class FlxGraphic implements IFlxDestroyable
 		return FlxAtlasFrames.findFrame(this, null);
 	}
 
+	/** Ratios from original image pixels to the bitmap's stored pixels. */
+	@:noCompletion public var textureScaleX(get, never):Float;
+	@:noCompletion public var textureScaleY(get, never):Float;
+	@:noCompletion public var isTextureScaled(get, never):Bool;
+
+	inline function get_textureScaleX():Float
+	{
+		return bitmap != null && width > 0 ? bitmap.width / width : 1.0;
+	}
+
+	inline function get_textureScaleY():Float
+	{
+		return bitmap != null && height > 0 ? bitmap.height / height : 1.0;
+	}
+
+	inline function get_isTextureScaled():Bool
+	{
+		return bitmap != null && width > 0 && height > 0 && (bitmap.width != width || bitmap.height != height);
+	}
+
 	function set_bitmap(value:BitmapData):BitmapData
 	{
 		if (value != null)
@@ -653,13 +673,20 @@ class FlxGraphic implements IFlxDestroyable
 			bitmap = value;
 			width = bitmap.width;
 			height = bitmap.height;
+			#if !flash
+			if (bitmap.imageSourceWidth > 0 && bitmap.imageSourceHeight > 0)
+			{
+				width = bitmap.imageSourceWidth;
+				height = bitmap.imageSourceHeight;
+			}
+			#end
 
 			#if FLX_OPENGL_AVAILABLE
 			var max:Int = FlxG.bitmap.maxTextureSize;
 			if (max > 0)
 			{
-				if (width > max || height > max)
-					FlxG.log.warn('Graphic dimensions (${width}x${height}) exceed the maximum allowed size (${max}x${max}), which may cause rendering issues.');
+				if (bitmap.width > max || bitmap.height > max)
+					FlxG.log.warn('Bitmap dimensions (${bitmap.width}x${bitmap.height}) exceed the maximum allowed size (${max}x${max}), which may cause rendering issues.');
 			}
 			#end
 		}

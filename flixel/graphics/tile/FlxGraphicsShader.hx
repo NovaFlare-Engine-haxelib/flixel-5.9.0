@@ -94,6 +94,14 @@ class FlxGraphicsShader extends GraphicsShader
 	}
 
 	#if CODENAME_ENGINE_COMPAT
+	public function setFrameCamSize(frame:flixel.graphics.frames.FlxFrame):Void
+	{
+		var rect = frame.frame;
+		var scaleX = frame.parent.textureScaleX;
+		var scaleY = frame.parent.textureScaleY;
+		setCamSize(rect.x * scaleX, rect.y * scaleY, rect.width * scaleX, rect.height * scaleY);
+	}
+
 	public function setCamSize(x:Float, y:Float, width:Float, height:Float):Void
 	{
 		data._camSize.value = [x, y, width, height];
