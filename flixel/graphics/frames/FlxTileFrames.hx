@@ -78,7 +78,10 @@ class FlxTileFrames extends FlxFramesCollection
 		var result:FlxGraphic = FlxG.bitmap.get(key);
 		if (result == null)
 		{
-			var bitmap:BitmapData = FlxBitmapDataUtil.addSpacesAndBorders(graphic.bitmap, tileSize, tileSpacing, tileBorder, region);
+			var input = graphic.isTextureScaled ? graphic.imageFrame.frame.paint() : graphic.bitmap;
+			var bitmap:BitmapData = FlxBitmapDataUtil.addSpacesAndBorders(input, tileSize, tileSpacing, tileBorder, region);
+			if (input != graphic.bitmap)
+				input.dispose();
 			result = FlxG.bitmap.add(bitmap, false, key);
 		}
 

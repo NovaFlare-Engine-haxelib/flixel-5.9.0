@@ -7,6 +7,7 @@ import flixel.FlxBasic.IFlxBasic;
 import flixel.animation.FlxAnimationController;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
+import flixel.graphics.frames.FlxImageFrame;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.graphics.frames.FlxTileFrames;
 #if CODENAME_ENGINE_COMPAT
@@ -577,11 +578,6 @@ class FlxSprite extends FlxObject
 		if (graph == null)
 			return this;
 
-		if (graph.bitmap.graphicScale != 1) {
-			graphicScale.set(1/graph.bitmap.graphicScale, 1/graph.bitmap.graphicScale);
-			canIgoreScaleCheck = true;
-		}
-
 		if (frameWidth == 0)
 		{
 			frameWidth = animated ? graph.height : graph.width;
@@ -629,21 +625,17 @@ class FlxSprite extends FlxObject
 		if (brushGraphic == null)
 			return this;
 
-		var brush:BitmapData = brushGraphic.bitmap;
+		var brushWidth = brushGraphic.width;
+		var brushHeight = brushGraphic.height;
 		var key:String = brushGraphic.key;
 
 		if (Frame >= 0)
 		{
 			// we assume that source graphic has one row frame animation with equal width and height
-			var brushSize:Int = brush.height;
-			var framesNum:Int = Std.int(brush.width / brushSize);
+			var framesNum = Std.int(brushWidth / brushHeight);
 			Frame = (framesNum > Frame || framesNum == 0) ? Frame : (Frame % framesNum);
 			key += ":" + Frame;
-
-			var full:BitmapData = brush;
-			brush = new BitmapData(brushSize, brushSize, true, FlxColor.TRANSPARENT);
-			_flashRect.setTo(Frame * brushSize, 0, brushSize, brushSize);
-			brush.copyPixels(full, _flashRect, _flashPointZero);
+			brushWidth = brushHeight;
 		}
 
 		key += ":" + Rotations + ":" + AutoBuffer;
@@ -652,7 +644,16 @@ class FlxSprite extends FlxObject
 		var tempGraph:FlxGraphic = FlxG.bitmap.get(key);
 		if (tempGraph == null)
 		{
+			var region = Frame >= 0 ? FlxRect.weak(Frame * brushHeight, 0, brushWidth, brushHeight) : null;
+			var brush = brushGraphic.bitmap;
+			if (region != null || brushGraphic.isTextureScaled)
+			{
+				var target = region != null ? new BitmapData(brushWidth, brushHeight, true, FlxColor.TRANSPARENT) : null;
+				brush = FlxImageFrame.fromGraphic(brushGraphic, region).frame.paint(target);
+			}
 			var bitmap:BitmapData = FlxBitmapDataUtil.generateRotations(brush, Rotations, AntiAliasing, AutoBuffer);
+			if (brush != brushGraphic.bitmap)
+				brush.dispose();
 			tempGraph = FlxGraphic.fromBitmapData(bitmap, false, key);
 		}
 		
@@ -660,15 +661,15 @@ class FlxSprite extends FlxObject
 		tempGraph.trackingInfo = 'loadRotatedGraphic($ID, $Rotations, $Frame, $AntiAliasing, $AutoBuffer)';
 		#end
 		
-		var max:Int = (brush.height > brush.width) ? brush.height : brush.width;
+		var max = brushHeight > brushWidth ? brushHeight : brushWidth;
 		max = AutoBuffer ? Std.int(max * 1.5) : max;
 
 		frames = FlxTileFrames.fromGraphic(tempGraph, FlxPoint.get(max, max));
 
 		if (AutoBuffer)
 		{
-			width = brush.width;
-			height = brush.height;
+			width = brushWidth;
+			height = brushHeight;
 			centerOffsets();
 		}
 
@@ -984,7 +985,7 @@ class FlxSprite extends FlxObject
 		{
 			var graphicsShader:FlxGraphicsShader = cast shader;
 			if (FlxCamera.supportsCNEShaderSizing(graphicsShader))
-				graphicsShader.setCamSize(_frame.frame.x, _frame.frame.y, _frame.frame.width, _frame.frame.height);
+				graphicsShader.setFrameCamSize(_frame);
 		}
 		#end
 
@@ -1826,8 +1827,6 @@ class FlxSprite extends FlxObject
 	/**
 	 * for skip check scale when set frames at LoadGraphic() function
 	 */
-	var canIgoreScaleCheck:Bool = false;
-
 	/**
 	 * Frames setter. Used by `loadGraphic` methods, but you can load generated frames yourself
 	 * (this should be even faster since engine doesn't need to do bunch of additional stuff).
@@ -1853,32 +1852,10 @@ class FlxSprite extends FlxObject
 			animation.frameIndex = 0;
 			graphicLoaded();
 
-			// 检查是否需要应用缩放
-			if (Frames.graphicScale != 1.0 || canIgoreScaleCheck)
-			{
-				// 重置 graphicScale，确保从 Frames 获取的值不会导致累积或错误
-				if (graphicScale == null)
-					graphicScale = FlxPoint.get();
-				
-				if (!canIgoreScaleCheck) {
-					// 计算缩放值
-					var scaleVal = 1 / Frames.graphicScale;
-					// 仅在值实际改变时设置，避免不必要的脏标记
-					if (graphicScale.x != scaleVal || graphicScale.y != scaleVal)
-					{
-						graphicScale.set(scaleVal, scaleVal);
-						
-						// 更新附加位移
-						additionalX = frameWidth * (graphicScale.x - 1) / 2;
-						additionalY = frameHeight * (graphicScale.y - 1) / 2;
-					}
-				} else {
-					additionalX = frameWidth * (graphicScale.x - 1) / 2;
-					additionalY = frameHeight * (graphicScale.y - 1) / 2;
-				}
-
-				canIgoreScaleCheck = false;
-			}
+			var frameScale = 1 / Frames.graphicScale;
+			graphicScale.set(frameScale, frameScale);
+			additionalX = frameWidth * (frameScale - 1) / 2;
+			additionalY = frameHeight * (frameScale - 1) / 2;
 		}
 		else
 		{

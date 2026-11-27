@@ -343,10 +343,13 @@ class FlxFrame implements IFlxDestroyable
 
 	inline function fillBlitMatrix(mat:FlxMatrix):FlxMatrix
 	{
-		mat.a = blitMatrix[0];
-		mat.b = blitMatrix[1];
-		mat.c = blitMatrix[2];
-		mat.d = blitMatrix[3];
+		// Resolve bitmap density when painting so the logical cache survives a texture resize.
+		var scaleX = 1 / parent.textureScaleX;
+		var scaleY = 1 / parent.textureScaleY;
+		mat.a = blitMatrix[0] * scaleX;
+		mat.b = blitMatrix[1] * scaleX;
+		mat.c = blitMatrix[2] * scaleY;
+		mat.d = blitMatrix[3] * scaleY;
 		mat.tx = blitMatrix[4];
 		mat.ty = blitMatrix[5];
 		return mat;
@@ -371,7 +374,7 @@ class FlxFrame implements IFlxDestroyable
 		if (type == FlxFrameType.EMPTY)
 			return bmd;
 
-		if (angle == FlxFrameAngle.ANGLE_0)
+		if (angle == FlxFrameAngle.ANGLE_0 && !parent.isTextureScaled)
 		{
 			offset.copyToFlash(_point);
 			if (point != null)
@@ -478,8 +481,8 @@ class FlxFrame implements IFlxDestroyable
 	 */
 	inline function getDrawFrameRect(mat:FlxMatrix, rect:Rectangle):Rectangle
 	{
-		final p1 = FlxPoint.weak(frame.x, frame.y);
-		final p2 = FlxPoint.weak(frame.right, frame.bottom);
+		final p1 = FlxPoint.weak(frame.x * parent.textureScaleX, frame.y * parent.textureScaleY);
+		final p2 = FlxPoint.weak(frame.right * parent.textureScaleX, frame.bottom * parent.textureScaleY);
 
 		p1.transform(mat);
 		p2.transform(mat);

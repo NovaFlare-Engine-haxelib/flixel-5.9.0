@@ -128,7 +128,7 @@ class FlxGame extends Sprite
 	/**
 	 * Ticks at the last draw call for computing drawElapsed.
 	 */
-	var _lastDrawTicks:Int = 0;
+	var _lastDrawTicks:Float = -1.0;
 
 	/**
 	 * Time stamp of game startup. Needed on JS where `Lib.getTimer()`
@@ -957,14 +957,14 @@ class FlxGame extends Sprite
 
 	function updateDrawElapsed():Void
 	{
-		var now = getTicks();
-		if (_lastDrawTicks == 0)
+		var now:Float = #if lime lime.system.System.getTimerNano() #else getTicks() #end;
+		if (_lastDrawTicks == -1.0)
 		{
 			_lastDrawTicks = now;
 			FlxG.drawElapsed = 0;
 			return;
 		}
-		var dtMS = now - _lastDrawTicks;
+		var dtMS = Math.max(0, now - _lastDrawTicks);
 		_lastDrawTicks = now;
 
 		var e = FlxG.timeScale * (dtMS / 1000);

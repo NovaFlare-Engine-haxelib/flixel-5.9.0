@@ -20,6 +20,9 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	var alphas:Array<Float>;
 	var colorMultipliers:Array<Float>;
 	var colorOffsets:Array<Float>;
+	#if (novaflare_compact_quad_shader_attributes && cpp && !nme && openfl >= "8.5.0")
+	var colorCopies:Int = 0;
+	#end
 
 	public function new()
 	{
@@ -33,6 +36,9 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	override public function reset():Void
 	{
 		super.reset();
+		#if (novaflare_compact_quad_shader_attributes && cpp && !nme && openfl >= "8.5.0")
+		colorCopies = 0;
+		#end
 		rects.length = 0;
 		transforms.length = 0;
 		alphas.splice(0, alphas.length);
@@ -55,20 +61,32 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	override public function addQuad(frame:FlxFrame, matrix:FlxMatrix, ?transform:ColorTransform):Void
 	{
 		var rect = frame.frame;
-		rects.push(rect.x);
-		rects.push(rect.y);
-		rects.push(rect.width);
-		rects.push(rect.height);
+		var scaleX = frame.parent.textureScaleX;
+		var scaleY = frame.parent.textureScaleY;
+		rects.push(rect.x * scaleX);
+		rects.push(rect.y * scaleY);
+		rects.push(rect.width * scaleX);
+		rects.push(rect.height * scaleY);
 
-		transforms.push(matrix.a);
-		transforms.push(matrix.b);
-		transforms.push(matrix.c);
-		transforms.push(matrix.d);
+		// The backend transforms vertices built from stored bitmap pixels.
+		var logicalScaleX = 1 / scaleX;
+		var logicalScaleY = 1 / scaleY;
+		transforms.push(matrix.a * logicalScaleX);
+		transforms.push(matrix.b * logicalScaleX);
+		transforms.push(matrix.c * logicalScaleY);
+		transforms.push(matrix.d * logicalScaleY);
 		transforms.push(matrix.tx);
 		transforms.push(matrix.ty);
 
+		#if (novaflare_compact_quad_shader_attributes && cpp && !nme && openfl >= "8.5.0")
+		if (colorCopies == 0)
+			colorCopies = shader == null && graphics != null && Type.getClass(graphics.shader) == FlxGraphicsShader ? 1 : VERTICES_PER_QUAD;
+		final copies = colorCopies;
+		#else
+		final copies = VERTICES_PER_QUAD;
+		#end
 		var alphaMultiplier = transform != null ? transform.alphaMultiplier : 1.0;
-		for (i in 0...VERTICES_PER_QUAD)
+		for (i in 0...copies)
 			alphas.push(alphaMultiplier);
 
 		if (colored || hasColorOffsets)
@@ -79,7 +97,7 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 			if (colorOffsets == null)
 				colorOffsets = [];
 
-			for (i in 0...VERTICES_PER_QUAD)
+			for (i in 0...copies)
 			{
 				if (transform != null)
 				{
@@ -122,22 +140,34 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		final shader = shader != null ? shader : graphics.shader;
 		shader.bitmap.input = graphics.bitmap;
 		shader.bitmap.filter = (#if CODENAME_ENGINE_COMPAT FlxG.enableAntialiasing && #end (camera.antialiasing || antialiasing)) ? LINEAR : NEAREST;
-		shader.alpha.value = alphas;
-
-		if (colored || hasColorOffsets)
-		{
-			shader.colorMultiplier.value = colorMultipliers;
-			shader.colorOffset.value = colorOffsets;
-		}
-
+		final hasColors = colored || hasColorOffsets;
 		setParameterValue(shader.hasTransform, true);
-		setParameterValue(shader.hasColorTransform, colored || hasColorOffsets);
+		setParameterValue(shader.hasColorTransform, hasColors);
 
 		#if (openfl > "8.7.0")
 		camera.canvas.graphics.overrideBlendMode(blend);
 		#end
-		camera.canvas.graphics.beginShaderFill(shader);
-		camera.canvas.graphics.drawQuads(rects, null, transforms);
+		final canvasGraphics = camera.canvas.graphics;
+		final compactFill = #if (novaflare_compact_quad_shader_attributes && cpp && !nme && openfl >= "8.5.0")
+			colorCopies == 1 && this.shader == null && Type.getClass(shader) == FlxGraphicsShader
+				&& canvasGraphics.__beginCompactQuadShaderFill(shader, alphas, hasColors ? colorMultipliers : null, hasColors ? colorOffsets : null);
+		#else
+			false;
+		#end
+		if (!compactFill)
+		{
+			#if (novaflare_compact_quad_shader_attributes && cpp && !nme && openfl >= "8.5.0")
+			useVertexColors();
+			#end
+			shader.alpha.value = alphas;
+			if (hasColors)
+			{
+				shader.colorMultiplier.value = colorMultipliers;
+				shader.colorOffset.value = colorOffsets;
+			}
+			canvasGraphics.beginShaderFill(shader);
+		}
+		canvasGraphics.drawQuads(rects, null, transforms);
 		super.render(camera);
 	}
 
@@ -149,7 +179,41 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	}
 	#end
 
+	#if (novaflare_compact_quad_shader_attributes && cpp && !nme && openfl >= "8.5.0")
+	private function useVertexColors():Void
+	{
+		if (colorCopies == 1)
+		{
+			expandQuadAttribute(alphas, 1);
+			if (colorMultipliers != null) expandQuadAttribute(colorMultipliers, 4);
+			if (colorOffsets != null) expandQuadAttribute(colorOffsets, 4);
+		}
+		colorCopies = VERTICES_PER_QUAD;
+	}
+
+	private static function expandQuadAttribute(values:Array<Float>, components:Int):Void
+	{
+		final quadCount = Std.int(values.length / components);
+		values.resize(values.length * VERTICES_PER_QUAD);
+		// Expand backwards so earlier compact values are still available.
+		for (offset in 0...quadCount)
+		{
+			final quad = quadCount - 1 - offset;
+			final source = quad * components;
+			final destination = source * VERTICES_PER_QUAD;
+			for (vertex in 0...VERTICES_PER_QUAD)
+			{
+				for (component in 0...components)
+					values[destination + vertex * components + component] = values[source + component];
+			}
+		}
+	}
+	#end
+
 public function addColoredQuad(frame:FlxFrame,matrix:FlxMatrix,?transforms:Array<ColorTransform>):Void {
+  #if (novaflare_compact_quad_shader_attributes && cpp && !nme && openfl >= "8.5.0")
+  if (transforms != null && transforms.length > 0) useVertexColors();
+  #end
   var start=alphas.length; addQuad(frame,matrix,transforms!=null&&transforms.length>0?transforms[0]:null);
   if(transforms==null || transforms.length==0) return;
   for(i in 0...VERTICES_PER_QUAD) {

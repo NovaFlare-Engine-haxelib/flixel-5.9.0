@@ -828,8 +828,10 @@ class FlxG
 
 	static function set_updateFramerate(value:Int):Int
 	{
+		#if flash
 		if (value < drawFramerate)
 			log.warn("FlxG.framerate: the game's framerate shouldn't be smaller than the flash framerate," + " since it can stop your game from updating.");
+		#end
 
 		updateFramerate = value;
 
@@ -879,17 +881,17 @@ class FlxG
 
 	static function set_drawFramerate(value:Int):Int
 	{
+		#if flash
 		if (value > updateFramerate)
 			log.warn("FlxG.drawFramerate: the update framerate shouldn't be smaller than the draw framerate," + " since it can stop your game from updating.");
+		#end
 
 		drawFramerate = Std.int(Math.abs(value));
 
 		#if !flash
 		if (game.stage != null && game.stage.window != null)
 		{
-			game.stage.window.lockRender = true;
 			game.stage.window.drawFrameRate = drawFramerate;
-			game.stage.window.frameRate = fixedTimestep ? Std.int(1000 / _fixedStepMS) : updateFramerate;
 		}
 		else if (game.stage != null)
 		{
